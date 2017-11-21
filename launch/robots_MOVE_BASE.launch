@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<launch> 
+
+  <group ns="robot1">
+
+    <param name="tf_prefix" value="robot1" />
+    <include file="$(find multirobot_fame)/launch/includes/move_base.launch.xml" >
+    </include> 
+
+    <!-- <include file="$(find multi_kobuki_gazebo)/launch/includes/move_baseSafe.launch">
+      <arg name="namespace" value="robot1"/>
+    </include> -->
+
+  </group>
+
+  <group ns="robot2">
+
+    <param name="tf_prefix" value="robot2" />
+    <include file="$(find multirobot_fame)/launch/includes/move_base.launch.xml" >
+    </include> 
+
+    <!-- <include file="$(find multi_kobuki_gazebo)/launch/includes/move_baseSafe.launch">
+      <arg name="namespace" value="robot2"/>
+    </include> -->
+
+  </group>
+
+  <!-- <group ns="robot3">
+
+    <param name="tf_prefix" value="robot3" />
+    <include file="$(find multirobot_fame)/launch/includes/move_base.launch.xml" >
+    </include> 
+
+    <include file="$(find multi_kobuki_gazebo)/launch/includes/move_baseSafe.launch">
+      <arg name="namespace" value="robot3"/>
+    </include> 
+
+  </group> -->
+
+ 
+</launch>
+
+    <!-- <node name="follower_navigation" pkg="multirobot_fame" type="follower_navigation" args="1" output="screen" /> -->

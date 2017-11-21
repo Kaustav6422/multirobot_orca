@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<launch> 
+
+<!-- Initial position -->
+<include file="$(find multirobot_orca)/launch/includes/initposes.launch.xml" />
+
+<!-- Calling map merge -->
+<include file="$(find multirobot_mapmerge)/launch/map_merge.launch" />
+
+<!-- Transformation between robots (FOR MAP MERGE)-->
+  <node name="robot1_to_robot0" pkg="tf" type="static_transform_publisher" args="0 1 0 0 0 0 /robot_0/map /robot_1/map 50" />
+  <node name="robot2_to_robot0" pkg="tf" type="static_transform_publisher" args="0 2 0 0 0 0 /robot_0/map /robot_2/map 50" />
+
+</launch>

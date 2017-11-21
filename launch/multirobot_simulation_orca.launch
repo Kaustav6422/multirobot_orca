@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+
+<launch>
+
+     <param name="/use_sim_time" value="true"/>
+
+     <!-- <node name="map_server" pkg="map_server" type="map_server" args="$(find collvoid_stage)/world/swarmlab_map.yaml"/> -->
+     <rosparam command="load" file="$(find collvoid_stage)/params/stage_params.yaml"/> 
+     <rosparam command="load" file="$(find collvoid_stage)/params_created.yaml"/>     #goals
+
+     <!-- Run the map server -->
+     <!-- Notice the param frame_id in map_server node. By default frame_id is set to map and as map is shared for all robots, we need -->
+     <!-- only one map and therefore we have to force the frame_id to fully qualified name /map -->
+     <node name="map_server" pkg="map_server" type="map_server" args="$(find multirobot_orca)/map.yaml" >
+          <param name="frame_id" value="/map" />
+     </node> 
+
+     <!-- Run Gazebo -->
+     <include file="$(find gazebo_ros)/launch/empty_world.launch">
+          <arg name="use_sim_time" value="true"/>
+          <arg name="debug" value="false"/>
+          <arg name="world_name" value="$(find multirobot_fame)/worlds/kaustav1.world"/>  
+          <!-- <arg name="world_name" value="$(find multirobot_fame)/worlds/complete_hotel.sdf"/> -->
+     </include>
+ 
+     <include file="$(find multirobot_orca)/launch/robots_orca.launch" /> 
+
+     <node pkg="collvoid_controller" type="controller.py" name="controller" output="screen"/>
+     <node pkg="collvoid_controller" type="collvoid_visualizer.py" name="controller_viz" output="screen"/> 
+
+     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find multirobot_orca)/launch/rviz_config/orca.rviz" output="screen" /> 
+
+     <param name="tf_prefix_leader"   value="robot_0" />
+     <param name="tf_prefix_follower" value="robot_1" />
+
+     # Robot 0       
+     <!--<node pkg ="multirobot_orca" name = "send_goal_robot0" type = "send_goal" output = "screen" args="robot_0">
+       <param name="goal_x"        value = "0" />
+       <param name="goal_y"        value = "0" />
+       <param name="goal_theta"    value = "0" /> 
+     </node>-->  
+
+     # Robot 1
+     <!-- <node pkg ="multirobot_orca" name = "follower_goal" type = "follower_goal" output = "screen" args="" /> -->
+     <!-- <node pkg ="multirobot_orca" name = "robot_map_tf"  type = "robot_map_tf"  output = "screen" args="" /> -->
+     <node pkg ="multirobot_orca" name = "robot_globalpose"  type = "robot_globalpose"  output = "screen" args="" /> 
+          
+
+     
+       
+      
+
+            
+</launch>

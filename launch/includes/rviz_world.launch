@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<launch>
+
+     <!-- Run Rviz -->
+     <!-- <param name="use_gui" value="true" />
+     <arg name="config" default="mapping_final" /> 
+     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find multirobot_fame)/rviz_config/$(arg config).rviz" /> -->
+
+     
+     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find multi_kobuki_gazebo)/launch/rviz_config/two.rviz">
+       <remap from="move_base_simple/goal" to="robot1/move_base_simple/goal"/>
+     </node> 
+
+</launch>

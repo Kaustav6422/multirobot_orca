@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<launch> 
+
+# Gazebo center (0,0)
+# Rviz map center (0,3) w.r.t gazebo center
+# robot_0/move_base_simple/goal
+# robot_0/initialpose
+
+  <group ns="robot_0">
+    <include file="$(find multirobot_orca)/launch/robot.launch"> 
+      <arg name="init_pose" value="-x 0.0 -y -3.0 -z 0.0 " />    # For gazebo  
+      <arg name="robot_name" value="robot_0" />
+    </include>
+    <include file="$(find multirobot_orca)/launch/includes/amcl_orca.launch.xml">
+      <arg name="robot" value="robot_0" />
+      <arg name="initial_pose_x" value="0" /> # rviz
+      <arg name="initial_pose_y" value="0" />
+      <arg name="initial_pose_a" value="0.0" />
+    </include> 
+    <include file="$(find multirobot_orca)/launch/includes/move_base_collvoid.launch">
+      <arg name="robot" value="robot_0"/>
+      <arg name="type" value="turtle"/>
+      <arg name="controlled" value="true"/>
+    </include>
+    <node pkg="collvoid_controller" type="controller_robots.py" name="controller_robots" /> 
+  </group>
+
+  <group ns="robot_1">
+    <include file="$(find multirobot_orca)/launch/robot.launch"> 
+      <arg name="init_pose" value="-x 0 -y -1 -z 0.0 " />     
+      <arg name="robot_name" value="robot_1" />
+    </include>
+        <include file="$(find multirobot_orca)/launch/includes/amcl_orca.launch.xml">
+      <arg name="robot" value="robot_1" />
+      <arg name="initial_pose_x" value="0" />
+      <arg name="initial_pose_y" value="2" />
+      <arg name="initial_pose_a" value="0.0" />
+    </include> 
+    <include file="$(find multirobot_orca)/launch/includes/move_base_collvoid.launch">
+      <arg name="robot" value="robot_1"/>
+      <arg name="type" value="turtle"/>
+      <arg name="controlled" value="true"/>
+    </include>
+    <node pkg="collvoid_controller" type="controller_robots.py" name="controller_robots" /> 
+  </group>  
+
+</launch>

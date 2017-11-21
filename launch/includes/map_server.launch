@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<launch>
+
+     <!-- Run the map server( PUBLISHES ON /map TOPIC) -->
+     <!-- Notice the param frame_id in map_server node. By default frame_id is set to map and as map is shared for all robots, we need -->
+     <!-- only one map and therefore we have to force the frame_id to fully qualified name /map -->
+     <node name="map_server" pkg="map_server" type="map_server" args="$(find multirobot_fame)/maps/hotel_world_SLAMmap.yaml" > <!--  respawn="false"> -->
+          <param name="frame_id" value="/map" /> 
+     </node>
+
+     
+
+</launch>

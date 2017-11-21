@@ -1,0 +1,8 @@
+robot_0:
+    goals:
+        - {x: 0, y: 0, ang: -0.785398}
+
+robot_1:
+    goals:
+        - {x: -1, y: 4, ang: 1.308997}
+

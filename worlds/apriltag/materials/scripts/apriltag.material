@@ -1,0 +1,17 @@
+material apriltag/Image
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.000000 0.000000 0.000000 1.000000         
+      emissive 0.000000 0.0000000 0.000000 1.000000
+      lighting on
+
+      texture_unit
+      {
+        texture atag-0.png
+      }
+    }
+  }
+}

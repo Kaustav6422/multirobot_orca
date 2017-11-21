@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<launch> 
+
+  <arg name="robot_name"/> 
+
+  <!-- This provides perfect localization in a computationally inexpensive manner. It creates a link between the global /map fram and
+  the robots /odom frames so they actually become equal -->
+    <node pkg="fake_localization" type="fake_localization" name="fake_localization" respawn="false" output="screen">
+      <param name="odom_frame_id" value="$(arg robot_name)/odom" />
+      <param name="base_frame_id" value="$(arg robot_name)/base_link" /> 
+    </node>
+
+</launch>

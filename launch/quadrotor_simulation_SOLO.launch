@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+
+
+<launch>
+
+  <arg name="use_ground_truth_for_tf" default="true" />
+
+  <!-- <arg name="model" default="$(find hector_quadrotor_description)/urdf/quadrotor_hokuyo_utm30lx.gazebo.xacro"/> -->
+  <!-- <arg name="model" default="$(find hector_quadrotor_description)/urdf/quadrotor_with_kinect.gazebo.xacro"/> -->
+  <!-- <arg name="model" default="$(find hector_quadrotor_description)/urdf/quadrotor_downward_cam.gazebo.xacro"/> -->
+  <!-- <arg name="model" default="$(find hector_quadrotor_description)/urdf/quadrotor_with_asus_with_hokuyo_utm30lx.gazebo.xacro"/> -->
+  <!--<arg name="model" default="$(find hector_quadrotor_description)/urdf/quadrotor_with_asus.gazebo.xacro"/> -->
+  <arg name="model" default="$(find hector_quadrotor_description)/urdf/quadrotor_with_cam.gazebo.xacro"/> 
+  <!--<arg name="model" defaults="$(find hector_quadrotor_description)/urdf/quadrotor_hokuyo_utm30lx.gazebo.xacro"/> -->
+  <!-- <group ns="quad1"> 
+     <include file="$(find hector_quadrotor_gazebo)/launch/spawn_quadrotor.launch">
+       <arg name="name" value="quad1" />
+       <arg name="tf_prefix" value="quad1" />
+       <arg name="model" value="$(arg model)" />
+       <arg name="x" value="0.0" />
+       <arg name="y" value="0.0" />
+       <arg name="z" value="0.0" />
+     </include>
+   </group> -->
+
+  
+   <include file="$(find hector_quadrotor_gazebo)/launch/MySpawn_quadrotor.launch" >
+    <arg name="model" value="$(find hector_quadrotor_urdf)/urdf/quadrotore.urdf"/> 
+     <arg name="use_ground_truth_for_tf" value="$(arg use_ground_truth_for_tf)" />
+   </include> 
+
+  <!-- Run Gazebo -->
+  <!-- <include file="$(find hector_gazebo_worlds)/launch/start.launch"> -->
+   <!-- <arg name="world" value="$(find hector_gazebo_worlds)/worlds/small_indoor_scenario.world"/> -->
+  <!-- </include> -->
+  <param name="/use_sim_time" value="true" /> 
+  <!-- Setting up the world for the simulation -->
+  <!-- these are the arguments you can pass this launch file, for example paused:=true -->
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <!-- <arg name="world_name" value="$(find multirobot_fame)/worlds/complete_hotel.sdf"/> -->
+      <arg name="world_name" value="$(find multirobot_orca)/worlds_new/competition.world"/> 
+      <!-- <arg name="world_name" value="$(find multirobot_fame)/worlds/apriltag/model.sdf"/> -->
+      <arg name="debug" value="$(arg debug)" />
+      <arg name="gui" value="$(arg gui)" />
+      <arg name="paused" value="$(arg paused)"/>
+      <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+      <arg name="headless" value="$(arg headless)"/> 
+  </include>
+
+  <!-- OPTICAL FLOW usigng IK -->
+  <!-- <include file="$(find opencv_apps)/launch/lk_flow.launch">
+      <arg name="image" value="/camera/rgb/image_raw"/> 
+      <arg name="use_camera_info" value="/camera/rgb/image_info" />
+      <arg name="debug_view" value="true" />
+  </include> -->
+
+  <!-- <node pkg="action_controller" type="action_controller" name="action_controller" output="screen"/> -->
+  
+  <!-- <include file="$(find quadrotore2_moveit)/launch/plan_and_execute.launch"/>
+	
+  <param name="/move_group/trajectory_execution/execution_duration_monitoring" value="false" /> -->
+
+  <include file="$(find multirobot_fame)/launch/moveit_rviz.launch" /> 
+
+  <!--  Octomap -->
+  <!-- <node pkg="octomap_server" type="octomap_server_node" name="octomap">	
+    <rosparam file="$(find multirobot_fame)/octomap_quadrotor.yaml" command="load" />  
+    <remap from="cloud_in" to="/camera/depth/points" />     
+    <remap from="octomap_binaray"             to="~octomap_binaray" />
+    <remap from="occupied_cells_vis_array"    to="~occupied_cells_vis_array" />
+    <remap from="octomap_point_cloud_centers" to="~octomap_point_cloud_centers" />
+    <remap from="octomap_collision_object"    to="~octomap_collision_object" />
+    <remap from="collision_map_out"           to="~collision_map_out" />
+    <remap from="projected_map"               to="~projected_map" />
+  </node> --> 
+
+
+  <!-- <include file="$(find multirobot_fame)/launch/planning_context.launch" /> -->
+
+
+  <!-- Start GeoTIFF mapper -->
+  <!-- <include file="$(find hector_geotiff)/launch/geotiff_mapper.launch">
+    <arg name="trajectory_publish_rate" value="4"/>
+  </include>
+
+  <node pkg ="hector_Astar" name = "position_controller" type = "position_controller.py" output = "screen"/>
+  <node pkg ="hector_Astar" name = "Trajectory_ref" type = "Trajectory_ref.py" output = "screen"/> -->
+
+</launch>

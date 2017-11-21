@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<launch>
+
+<!-- AMCL+SLAM+MOVE_BASE(GOAL) Everything works !! -->
+
+  <param name="use_gui" value="true" />
+   
+  <!-- Run robot model -->
+  <include file="$(find multirobot_sim)/launch/mobilerobot_world.launch" /> 
+
+
+  <!-- ardrone_lsd.launch -->
+  <arg name="image" default="/camera/rgb/image_raw" /> 
+  <arg name="camera_info" default="/camera/rgb/camera_info" />
+  <arg name="lsd_world_frame" default="map" />
+  
+
+  <node name="lsd_slam_display" pkg="lsd_slam_viewer" type="viewer" output="screen"/>
+  <!-- <node name="lsd_slam" pkg="lsd_slam_core" type="live_slam" respawn="true" output="screen" args="image:=$(arg image) camera_info:=$(arg camera_info) lsd_world_frame:=$(arg lsd_world_frame)"/> -->
+
+  <!-- <arg name="image" default="/logitechC310/camera/image_rect" />
+  <arg name="camera_info" default="/logitechC310/camera/camera_info" /> -->
+
+
+
+</launch>

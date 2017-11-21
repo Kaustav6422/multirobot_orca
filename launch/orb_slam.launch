@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+
+<launch>
+
+   <node pkg="image_view" type="image_view" name="image_view" respawn="false" output="log">
+	<remap from="/image" to="/image_raw" />     <!-- "/ORB_SLAM/Frame" /> -->
+	<param name="autosize" value="true"/>
+   </node>
+   
+   <include file="$(find uvc_camera)/launch/camera_node.launch" /> 
+
+   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find ORB_SLAM2)/Data/rviz.rviz" output="log"/>
+
+   <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+
+        <remap from="cloud_in" to="camera/depth_registered/points_processed"/>
+        <remap from="scan" to="base_scan"/>
+        <rosparam>
+            target_frame: camera_link # Leave disabled to output scan in pointcloud frame
+            transform_tolerance: 0.01
+            min_height: 0.0
+            max_height: 1.0
+
+            angle_min: -1.5708 # -M_PI/2
+            angle_max: 1.5708 # M_PI/2
+            angle_increment: 0.0087 # M_PI/360.0
+            scan_time: 0.3333
+            range_min: 0.45
+            range_max: 4.0
+            use_inf: true
+
+            # Concurrency level, affects number of pointclouds queued for processing and number of threads used
+            # 0 : Detect number of cores
+            # 1 : Single threaded
+            # 2->inf : Parallelism level
+            concurrency_level: 1
+        </rosparam>
+
+    </node>
+
+
+    <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
+
+       <param name="base_frame" value="base_footprint"/> <!-- changed from base_footprint -->
+       <param name="odom_frame" value="odom"/>
+       <param name="map_frame" value="map" /> <!-- Added from jackal -->
+
+       <!-- Added from Jackal -->
+       <!-- Process 1 out of every this many scans( set it to a higher number to skip more scans) --> 
+       <param name="throttle_scans" value="1" />
+
+       <param name="map_update_interval" value="5.0"/> <!-- default is 5 -->
+
+       <!-- Maximum usable range of the laser. A beam is cropped to this value -->
+       <param name="maxUrange" value="6.0"/>
+
+       <!-- The maximum range of the sensor. If regions with no obstacles within the range of the sensor should appear as free space in the 
+       map, set maxUrange < maximum range of the real sensor <= maxRange -->
+       <param name="maxRange" value="8.0"/>
+
+       <param name="sigma" value="0.05"/>
+       <param name="kernelSize" value="1"/>
+       <param name="lstep" value="0.05"/>
+       <param name="astep" value="0.05"/>
+       <param name="iterations" value="5"/>
+       <param name="lsigma" value="0.075"/>
+       <param name="ogain" value="3.0"/>
+       <!-- Number of beams to skip in each scan -->
+       <param name="lskip" value="0"/>
+       <param name="minimumScore" value="100"/>
+
+       <param name="srr" value="0.01"/>
+       <param name="srt" value="0.02"/>
+       <param name="str" value="0.01"/>
+       <param name="stt" value="0.02"/>
+    
+       <!-- Process a scan each time the robot translates this far -->
+       <param name="linearUpdate" value="0.5"/>
+
+       <!-- Process a scan each time robot rotates this far -->
+       <param name="angularUpdate" value="0.436"/>
+
+       <param name="temporalUpdate" value="-1.0"/>
+       <param name="resampleThreshold" value="0.5"/>
+
+       <!-- The number of particles in the filter. default 30 -->
+       <param name="particles" value="80"/>
+
+       <!--
+         <param name="xmin" value="-50.0"/>
+         <param name="ymin" value="-50.0"/>
+         <param name="xmax" value="50.0"/>
+         <param name="ymax" value="50.0"/>
+         make the starting size small for the benefit of the Android client's memory...
+       -->
+       <param name="xmin" value="-1.0"/>
+       <param name="ymin" value="-1.0"/>
+       <param name="xmax" value="1.0"/>
+       <param name="ymax" value="1.0"/>
+
+       <!-- Processing parameters( resolution of the map) -->
+       <param name="delta" value="0.05"/>
+
+       <param name="llsamplerange" value="0.01"/>
+       <param name="llsamplestep" value="0.01"/>
+       <param name="lasamplerange" value="0.005"/>
+       <param name="lasamplestep" value="0.005"/>
+
+       <remap from="scan" to="base_scan"/>
+   </node>
+
+
+
+
+
+   <node pkg="ORB_SLAM2" type="ORB_SLAM2" name="ORB_SLAM2"  args="Vocabulary/ORBvoc.txt Examples/Monocular/mono.yaml" cwd="node" output="screen">
+        <remap from="/camera/image_raw" to="/image_raw" />
+   </node>
+  
+
+   <!-- <include file="$(find multirobot_sim)/launch/mobilerobot_gmapping.launch" />  -->
+
+
+	
+
+ 	<!-- < -->
+   # rosrun ORB_SLAM2 Mono Vocabulary/ORBvoc.txt Examples/Monocular/mono.yaml /camera/image_raw:=usb_cam/image_raw
+
+</launch>
+
+
