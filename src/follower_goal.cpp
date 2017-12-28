@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh ;
 
-    ros::Subscriber robotmaptf_sub =  nh.subscribe("robot_map_tf",1000, robot_map_tf_callback);
+    ros::Subscriber robotmaptf_sub =  nh.subscribe("robot_map_tf",10, robot_map_tf_callback);
 
     ros::spin() ;
 

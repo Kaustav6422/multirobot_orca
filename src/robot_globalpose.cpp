@@ -15,35 +15,63 @@
 #include "collvoid_msgs/PoseTwistWithCovariance.h"
 
 using namespace std ;
+
+template<typename T, typename S>
+double pointsDistance(const T &one, const S &two)
+{
+      return sqrt(pow(one.x-two.x,2.0) + pow(one.y-two.y,2.0) + pow(one.z-two.z,2.0));
+}
+
+/**
+* @brief Evaluate whether two points are approximately adjacent, within a specified proximity distance.
+* @param one Point one
+* @param two Point two
+* @param proximity Proximity distance
+* @return True if approximately adjacent, false otherwise
+*/
+template<typename T, typename S>
+bool pointsNearby(const T &one, const S &two, const double &proximity)
+{
+      return pointsDistance(one, two) <= proximity;
+}
+
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 void goal_callback(const collvoid_msgs::PoseTwistWithCovariance::ConstPtr& data)
 {
     string robot_movebase = "robot_1/move_base"                             ;
     MoveBaseClient ac(robot_movebase.c_str(),true)                          ; 
-    while(!ac.waitForServer(ros::Duration(1.0)))
+    //while(!ac.waitForServer(ros::Duration(1.0)))
+    while(!ac.waitForServer())  
     {
         ROS_INFO("Waiting for the move_base action server to come up")      ;
         ROS_INFO("%s",robot_movebase.c_str())                               ;
     }
     move_base_msgs::MoveBaseGoal goal                                       ;
 
-    if (data->robot_id == "robot_0") 
+    //geometry_msgs::PoseStamped current_goal ;
+    move_base_msgs::MoveBaseGoal current_goal ;
+
+    if ((data->robot_id == "robot_0") and !pointsNearby(current_goal.target_pose.pose.position,data->pose.pose.position,0.1))  
     {
-        goal.target_pose.header.frame_id    = "map"           ; 
-        goal.target_pose.header.stamp       = ros::Time::now()              ;
-        goal.target_pose.pose.position.x    = data->pose.pose.position.x    ; 
+        goal.target_pose.header.frame_id    = "map"                             ; 
+        goal.target_pose.header.stamp       = ros::Time::now()                  ;
+        goal.target_pose.pose.position.x    = data->pose.pose.position.x        ; 
         goal.target_pose.pose.position.y    = data->pose.pose.position.y    ; 
         goal.target_pose.pose.position.z    = 0.0                           ; 
         goal.target_pose.pose.orientation   = data->pose.pose.orientation   ;
         ROS_INFO("Sending goal")                                            ;
-        ac.sendGoal(goal)                                                   ;  
-        ac.waitForResult()                                                  ;
+        ac.sendGoal(goal)                                                   ; 
+        current_goal = goal                                                 ; // making a copy of current goal position 
+        // ac.waitForResult()                                                  ;
         if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
             ROS_INFO("Hooray, the base moved to it's goal")                 ;
         else
-            ROS_INFO("The base failed to move to it's goal")                ;
-    }  
+            ROS_INFO("The base not reached it's goal yet")                ;
+
+        //ac.cancelGoalsAtAndBeforeTime(ros::Time::now()) ;
+    }
+      
 }
 
 int main(int argc, char **argv)

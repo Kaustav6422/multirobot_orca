@@ -172,21 +172,20 @@ Tuning the weights of the local planner takes a lot of art
      <param name="tf_prefix_follower" value="robot_1" />
 
      # Robot 0       
-     <node pkg ="multirobot_orca" name = "send_goal_robot0" type = "send_goal" output = "screen" args="robot_0">
+     <!-- <node pkg ="multirobot_orca" name = "send_goal_robot0" type = "send_goal" output = "screen" args="robot_0">
        <param name="goal_x"        value = "0" />
        <param name="goal_y"        value = "2" />
        <param name="goal_theta"    value = "0" /> 
-     </node>  
+     </node> -->  
 
      # Robot 1
-     <node pkg ="multirobot_orca" name = "send_goal_robot1" type = "send_goal" output = "screen" args="robot_1">
+     <!-- <node pkg ="multirobot_orca" name = "send_goal_robot1" type = "send_goal" output = "screen" args="robot_1">
        <param name="goal_x"        value = "0" />
        <param name="goal_y"        value = "0" />
        <param name="goal_theta"    value = "0" /> 
-     </node> 
-     <!-- <node pkg ="multirobot_orca" name = "follower_goal" type = "follower_goal" output = "screen" args="" /> -->
-     <!-- <node pkg ="multirobot_orca" name = "robot_map_tf"  type = "robot_map_tf"  output = "screen" args="" /> -->
-     <!-- <node pkg ="multirobot_orca" name = "robot_globalpose"  type = "robot_globalpose"  output = "screen" args="" /> -->
+     </node> -->
+ 
+     <node pkg ="multirobot_orca" name = "robot_globalpose"  type = "robot_globalpose"  output = "screen" args="" /> 
           
 
      
