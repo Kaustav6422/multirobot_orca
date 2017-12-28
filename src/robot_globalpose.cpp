@@ -21,7 +21,7 @@ void goal_callback(const collvoid_msgs::PoseTwistWithCovariance::ConstPtr& data)
 {
     string robot_movebase = "robot_1/move_base"                             ;
     MoveBaseClient ac(robot_movebase.c_str(),true)                          ; 
-    while(!ac.waitForServer(ros::Duration(5.0)))
+    while(!ac.waitForServer(ros::Duration(1.0)))
     {
         ROS_INFO("Waiting for the move_base action server to come up")      ;
         ROS_INFO("%s",robot_movebase.c_str())                               ;

@@ -1,5 +1,133 @@
 <?xml version="1.0"?>
 
+<!-- 
+rosnode list :
+/controller
+/controller_viz
+/gazebo
+/map_server
+/robot_0/active_collvoid
+/robot_0/amcl
+/robot_0/controller_robots
+/robot_0/me_publisher
+/robot_0/move_base
+/robot_0/position_share_controller
+/robot_0/robot_state_publisher
+/robot_1/active_collvoid
+/robot_1/amcl
+/robot_1/controller_robots
+/robot_1/me_publisher
+/robot_1/move_base
+/robot_1/position_share_controller
+/robot_1/robot_state_publisher
+/rosout
+/rviz
+
+Node [/robot_0/active_collvoid]
+Publications: 
+ * /rosout [rosgraph_msgs/Log]
+ * /robot_0/cmd_vel [geometry_msgs/Twist]
+Subscriptions: 
+ * /tf [tf2_msgs/TFMessage]
+ * /clock [rosgraph_msgs/Clock]
+Services: 
+ * /robot_0/active_collvoid/tf_frames
+ * /robot_0/toggle_active_collvoid
+ * /robot_0/active_collvoid/get_loggers
+ * /robot_0/active_collvoid/set_logger_level
+
+Node [/robot_0/amcl]
+Publications: 
+ * /robot_0/amcl_pose [geometry_msgs/PoseWithCovarianceStamped]
+ * /robot_0/particlecloud [geometry_msgs/PoseArray]
+ * /robot_0/amcl/parameter_descriptions [dynamic_reconfigure/ConfigDescription]
+ * /tf [tf2_msgs/TFMessage]
+ * /robot_0/amcl/parameter_updates [dynamic_reconfigure/Config]
+ * /rosout [rosgraph_msgs/Log]
+Subscriptions: 
+ * /tf [tf2_msgs/TFMessage]
+ * /tf_static [tf2_msgs/TFMessage]
+ * /map [nav_msgs/OccupancyGrid]
+ * /clock [rosgraph_msgs/Clock]
+ * /robot_0/initialpose [geometry_msgs/PoseWithCovarianceStamped]
+ * /robot_0/base_scan [sensor_msgs/LaserScan]
+Services: 
+ * /robot_0/amcl/set_logger_level
+ * /robot_0/set_map
+ * /robot_0/amcl/get_loggers
+ * /robot_0/global_localization
+ * /robot_0/amcl/set_parameters
+ * /robot_0/request_nomotion_update
+
+Node [/robot_0/controller_robots]
+Publications: 
+ * /robot_0/move_base/goal [move_base_msgs/MoveBaseActionGoal]
+ * /robot_0/move_base/cancel [actionlib_msgs/GoalID]
+ * /robot_0/current_goal [geometry_msgs/PoseStamped]
+ * /commands_robot [std_msgs/String]
+ * /rosout [rosgraph_msgs/Log]
+ * /robot_0/initialpose [geometry_msgs/PoseWithCovarianceStamped]
+ * /robot_0/cmd_vel [geometry_msgs/Twist]
+Subscriptions: 
+ * /position_share [collvoid_msgs/PoseTwistWithCovariance]
+ * /commands_robot [std_msgs/String]
+ * /robot_0/base_pose_ground_truth [unknown type]
+ * /robot_0/move_base/feedback [move_base_msgs/MoveBaseActionFeedback]
+ * /robot_0/move_base/status [actionlib_msgs/GoalStatusArray]
+ * /robot_0/move_base/result [move_base_msgs/MoveBaseActionResult]
+ * /robot_0/delayed_goal [unknown type]
+ * /clock [rosgraph_msgs/Clock]
+Services: 
+ * /robot_0/is_done
+ * /robot_0/controller_robots/get_loggers
+ * /robot_0/controller_robots/set_logger_level
+
+Node [/robot_0/me_publisher]
+Publications: 
+ * /robot_0/convex_hull [geometry_msgs/PolygonStamped]
+ * /position_share [collvoid_msgs/PoseTwistWithCovariance]
+ * /robot_0/me [visualization_msgs/MarkerArray]
+ * /rosout [rosgraph_msgs/Log]
+Subscriptions: 
+ * /tf [tf2_msgs/TFMessage]
+ * /robot_0/odom [nav_msgs/Odometry]
+ * /robot_0/particlecloud_weighted [unknown type]
+ * /tf_static [tf2_msgs/TFMessage]
+ * /clock [rosgraph_msgs/Clock]
+Services: 
+ * /robot_0/get_me
+ * /robot_0/me_publisher/set_logger_level
+ * /robot_0/me_publisher/get_loggers
+
+Node [/robot_0/position_share_controller]
+Publications: 
+ * /robot_0/clearing_scan [sensor_msgs/LaserScan]
+ * /position_share [collvoid_msgs/PoseTwistWithCovariance]
+ * /robot_0/stationary_robots [sensor_msgs/PointCloud2]
+ * /rosout [rosgraph_msgs/Log]
+Subscriptions: 
+ * /position_share [collvoid_msgs/PoseTwistWithCovariance]
+ * /clock [rosgraph_msgs/Clock]
+Services: 
+ * /robot_0/get_neighbors
+ * /robot_0/position_share_controller/get_loggers
+ * /robot_0/position_share_controller/set_logger_level
+
+David Liu's lecture on ROSCON 2014 :
+  
+Global planner/ROS - check it out
+Different layers in costmap
+People social interaction related costmap changes in the video 
+Author suggests using DWAlocalplanner instead of baselocalplanner 
+In the DWAlocalplanner, the costfunction consists of 6 cost functions.
+You can choose which cost functions to use which is kinda cool.
+DWA plugin planner and MoveBase2 34:45sec (ROSCON 2014 David Liu)
+Global planner uses static, inflation and obstacle costmap (the entire area to explored)
+Local planner uses local costmap within a few meters
+GLobal planner is in map frame
+Local planner is in odometry frame
+Tuning the weights of the local planner takes a lot of art 
+-->
 
 <launch>
 
@@ -15,7 +143,7 @@
      <node name="map_server" pkg="map_server" type="map_server" args="$(find multirobot_orca)/map.yaml" >
           <param name="frame_id" value="/map" />
      </node> 
-
+-
      <!-- Run Gazebo -->
      <include file="$(find gazebo_ros)/launch/empty_world.launch">
           <arg name="use_sim_time" value="true"/>
@@ -26,8 +154,17 @@
  
      <include file="$(find multirobot_orca)/launch/robots_orca.launch" /> 
 
+     <!-- Publications: 
+      * /obstacles [geometry_msgs/PoseArray]
+      * /goals [geometry_msgs/PoseArray]
+      * /commands_robot [std_msgs/String]
+      * /rosout [rosgraph_msgs/Log]
+
+          Subscriptions: 
+      * /position_share [collvoid_msgs/PoseTwistWithCovariance]
+      * /clock [rosgraph_msgs/Clock] -->
      <node pkg="collvoid_controller" type="controller.py" name="controller" output="screen"/>
-     <node pkg="collvoid_controller" type="collvoid_visualizer.py" name="controller_viz" output="screen"/> 
+     <node pkg="collvoid_controller" type="collvoid_visualizer.py" name="controller_viz" output="screen"/> <!-- publishes /found_robots [visualization_msgs/MarkerArray] for visualization purposes -->
 
      <node pkg="rviz" type="rviz" name="rviz" args="-d $(find multirobot_orca)/launch/rviz_config/orca.rviz" output="screen" /> 
 
@@ -35,16 +172,21 @@
      <param name="tf_prefix_follower" value="robot_1" />
 
      # Robot 0       
-     <!--<node pkg ="multirobot_orca" name = "send_goal_robot0" type = "send_goal" output = "screen" args="robot_0">
+     <node pkg ="multirobot_orca" name = "send_goal_robot0" type = "send_goal" output = "screen" args="robot_0">
+       <param name="goal_x"        value = "0" />
+       <param name="goal_y"        value = "2" />
+       <param name="goal_theta"    value = "0" /> 
+     </node>  
+
+     # Robot 1
+     <node pkg ="multirobot_orca" name = "send_goal_robot1" type = "send_goal" output = "screen" args="robot_1">
        <param name="goal_x"        value = "0" />
        <param name="goal_y"        value = "0" />
        <param name="goal_theta"    value = "0" /> 
-     </node>-->  
-
-     # Robot 1
+     </node> 
      <!-- <node pkg ="multirobot_orca" name = "follower_goal" type = "follower_goal" output = "screen" args="" /> -->
      <!-- <node pkg ="multirobot_orca" name = "robot_map_tf"  type = "robot_map_tf"  output = "screen" args="" /> -->
-     <node pkg ="multirobot_orca" name = "robot_globalpose"  type = "robot_globalpose"  output = "screen" args="" /> 
+     <!-- <node pkg ="multirobot_orca" name = "robot_globalpose"  type = "robot_globalpose"  output = "screen" args="" /> -->
           
 
      
