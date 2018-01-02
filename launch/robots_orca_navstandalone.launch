@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<launch> 
+
+# Gazebo center (0,0)
+# Rviz map center (0,3) w.r.t gazebo center
+# robot_0/move_base_simple/goal
+# robot_0/initialpose
+
+  <group ns="robot_0">
+    <include file="$(find multirobot_orca)/launch/robot.launch"> 
+      <arg name="init_pose" value="-x 0.0 -y -3.0 -z 0 -Y 1.57" />    # For gazebo  
+      <arg name="robot_name" value="robot_0" />
+    </include> 
+    <include file="$(find multirobot_orca)/launch/includes/amcl_orca.launch.xml">
+      <arg name="robot" value="robot_0" />
+      <arg name="initial_pose_x" value="0" /> # rviz
+      <arg name="initial_pose_y" value="0" />
+      <arg name="initial_pose_a" value="1.57" />
+    </include>
+    <!-- <include file="$(find multirobot_orca)/launch/includes/nav_standalone.launch">
+      <arg name="global_frame" value="/map"/>
+      <arg name="robot_base_frame" value="/robot_0/base_link"/>
+    </include> -->
+    <node pkg="collvoid_controller" type="controller_robots.py" name="controller_robots" /> 
+  </group>
+
+  <!-- Publishes the voxel grid to rviz for display -->
+    <node pkg="costmap_2d" type="costmap_2d_markers" name="voxel_visualizer">
+      <remap from="voxel_grid" to="costmap/voxel_grid"/>
+    </node>
+
+    <!-- Run the costmap node -->
+    <node name="costmap_node" pkg="costmap_2d" type="costmap_2d_node" >
+      <rosparam file="$(find costmap_2d)/launch/example_params.yaml" command="load" ns="costmap" />
+    </node>
+
+  <!--<group ns="robot_1">
+    <include file="$(find multirobot_orca)/launch/robot.launch"> 
+      <arg name="init_pose" value="-x 0 -y -1 -z 0 -Y -1.57" />     
+      <arg name="robot_name" value="robot_1" />
+    </include>
+        <include file="$(find multirobot_orca)/launch/includes/amcl_orca.launch.xml">
+      <arg name="robot" value="robot_1" />
+      <arg name="initial_pose_x" value="0" />
+      <arg name="initial_pose_y" value="2" />
+      <arg name="initial_pose_a" value="-1.57" />
+    </include> 
+    <include file="$(find multirobot_orca)/launch/includes/nav_standalone.launch">
+      <arg name="global_frame" value="/map"/>
+      <arg name="robot_base_frame" value="/robot_1/base_link"/>
+    </include>
+    <node pkg="collvoid_controller" type="controller_robots.py" name="controller_robots" /> 
+  </group>-->   
+
+</launch>

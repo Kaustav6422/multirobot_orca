@@ -9,9 +9,9 @@
   <arg name="controlled" default="true" />
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-     <rosparam command="load" file="$(find collvoid_stage)/params/costmap_common_$(arg type).yaml" ns="local_costmap" /> ####
-     <rosparam command="load" file="$(find collvoid_stage)/params/costmap_common_$(arg type).yaml" ns="global_costmap" /> ####
-     <rosparam command="load" file="$(find collvoid_stage)/params/move_base_params_$(arg type).yaml" /> ####
+     <rosparam command="load" file="$(find collvoid_stage)/params/costmap_common_$(arg type).yaml" ns="local_costmap" /> 
+     <rosparam command="load" file="$(find collvoid_stage)/params/costmap_common_$(arg type).yaml" ns="global_costmap" /> 
+     <rosparam command="load" file="$(find collvoid_stage)/params/move_base_params_$(arg type).yaml" /> 
      <rosparam command="load" file="$(find collvoid_stage)/params/collvoid_config.yaml" />
      <rosparam command="load" file="$(find collvoid_stage)/params/collvoid_common.yaml" ns="CollvoidLocalPlanner" /> 
      
@@ -20,30 +20,21 @@
      <param name="~controlled" value="$(arg controlled)" />
      <param name="~tf_prefix" value="$(arg robot)" />
 
-     <param name="global_costmap/global_frame" value="map"/>  #### 
-     <param name="global_costmap/robot_base_frame" value="$(arg robot)/base_link"/>  <!--from collvoid --> ####
-     <param name="global_costmap/laser_scan_sensor/sensor_frame" value="hokuyo_link"/> ####
-     <param name="global_costmap/laser_scan_sensor/topic" value="$(arg robot)/base_scan"/> ####
+     <param name="global_costmap/global_frame" value="map"/>  
+     <param name="global_costmap/robot_base_frame" value="$(arg robot)/base_link"/>  <!--from collvoid --> 
+     <param name="global_costmap/laser_scan_sensor/sensor_frame" value="hokuyo_link"/> 
+     <param name="global_costmap/laser_scan_sensor/topic" value="$(arg robot)/base_scan"/> 
 
-     <param name="local_costmap/global_frame" value="$(arg robot)/odom"/> ####
-     <param name="local_costmap/robot_base_frame" value="$(arg robot)/base_link"/> <!--from collvoid --> ####
-     <param name="local_costmap/laser_scan_sensor/sensor_frame" value="hokuyo_link"/> ####
-     <param name="local_costmap/laser_scan_sensor/topic" value="$(arg robot)/base_scan"/> ####
-     <param name="local_costmap/obstacle_layer/laser_scan_sensor/topic" value="$(arg robot)/base_scan"/> ####
+     <param name="local_costmap/global_frame" value="$(arg robot)/odom"/> 
+     <param name="local_costmap/robot_base_frame" value="$(arg robot)/base_link"/> <!--from collvoid --> 
+     <param name="local_costmap/laser_scan_sensor/sensor_frame" value="hokuyo_link"/> 
+     <param name="local_costmap/laser_scan_sensor/topic" value="$(arg robot)/base_scan"/> 
+     <param name="local_costmap/obstacle_layer/laser_scan_sensor/topic" value="$(arg robot)/base_scan"/> 
 
-     <param name="base_global_planner" type="string" value="navfn/NavfnROS" /> <!-- added from clearpath robotics website --> ####
-     <param name="base_local_planner" value="collvoid_local_planner/CollvoidLocalPlanner" />  <!-- CHANGED THE LOCAL PLANNER --> ####
+     <!-- <param name="base_global_planner" type="string" value="navfn/NavfnROS" /> -->
+     <!-- <param name="base_local_planner" value="collvoid_local_planner/CollvoidLocalPlanner" />  -->
      <!-- <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/> -->  <!-- added from clearpath robotics website -->  
-     
-     <!-- <rosparam file="$(find multirobot_orca)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
-     <rosparam file="$(find multirobot_orca)/param/global_costmap_params.yaml" command="load" />
-
-     <rosparam file="$(find multirobot_orca)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
-     <rosparam file="$(find multirobot_orca)/param/local_costmap_params.yaml" command="load" />
-
-     <rosparam file="$(find multirobot_orca)/param/base_local_planner_params.yaml" command="load" />
-     <rosparam file="$(find multirobot_orca)/param/dwa_local_planner_params.yaml" command="load" />
-     <rosparam file="$(find multirobot_orca)/param/move_base_params.yaml" command="load" /> -->
+         
   </node>
 
   <rosparam command="load" file="$(find collvoid_stage)/params/me_publisher_turtle.yaml"/> ####

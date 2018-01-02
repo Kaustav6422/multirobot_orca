@@ -166,7 +166,9 @@ Tuning the weights of the local planner takes a lot of art
      <node pkg="collvoid_controller" type="controller.py" name="controller" output="screen"/>
      <node pkg="collvoid_controller" type="collvoid_visualizer.py" name="controller_viz" output="screen"/> <!-- publishes /found_robots [visualization_msgs/MarkerArray] for visualization purposes -->
 
-     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find multirobot_orca)/launch/rviz_config/orca.rviz" output="screen" /> 
+     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find multirobot_orca)/launch/rviz_config/orca.rviz" output="screen" />  
+
+     <!-- <node pkg="FormationControl" type="global_planner" name="formationcontrol" output="screen" args=""/> -->
 
      <param name="tf_prefix_leader"   value="robot_0" />
      <param name="tf_prefix_follower" value="robot_1" />
@@ -183,14 +185,13 @@ Tuning the weights of the local planner takes a lot of art
        <param name="goal_x"        value = "0" />
        <param name="goal_y"        value = "0" />
        <param name="goal_theta"    value = "0" /> 
+     </node>  -->
+
+     <!-- <node pkg="multirobot_orca" name="follower_navigation" type="follower_navigation" output="screen" >
+        <param name="leader_id"   value="robot_0" />
+        <param name="follower_id" value="robot_1" />
      </node> -->
- 
+
      <node pkg ="multirobot_orca" name = "robot_globalpose"  type = "robot_globalpose"  output = "screen" args="" /> 
-          
-
-     
-       
-      
-
-            
+              
 </launch>

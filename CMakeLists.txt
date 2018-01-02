@@ -142,6 +142,9 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+
+
+
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/turtlebot_orca.cpp
@@ -151,7 +154,8 @@ include_directories(
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+add_dependencies(costmap_2d geometry_msgs_gencpp)
+ 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
@@ -162,7 +166,9 @@ add_executable(send_goal src/send_goal.cpp)
 # add_executable(send_goal_follower1 src/send_goal_follower1.cpp)
 add_executable(robot_map_tf src/robot_map_tf.cpp)
 add_executable(follower_goal src/follower_goal.cpp)
+#add_executable(follower_navigation src/follower_navigation.cpp)
 add_executable(robot_globalpose src/robot_globalpose.cpp)
+add_executable(costmap_node src/costmap_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -174,6 +180,11 @@ add_executable(robot_globalpose src/robot_globalpose.cpp)
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+find_package( PCL REQUIRED )
+include_directories(  ${catkin_INCLUDE_DIRS}  ${PCL_INCLUDE_DIRS} )
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
@@ -183,7 +194,11 @@ target_link_libraries(send_goal ${catkin_LIBRARIES})
 #target_link_libraries(send_goal_follower1 ${catkin_LIBRARIES})
 target_link_libraries(robot_map_tf ${catkin_LIBRARIES})
 target_link_libraries(follower_goal ${catkin_LIBRARIES})
+#target_link_libraries(follower_navigation ${catkin_LIBRARIES})
 target_link_libraries(robot_globalpose ${catkin_LIBRARIES})
+target_link_libraries(costmap_node ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#target_link_libraries(costmap_2d ${PCL_LIBRARIES})
+
  
 # )
 

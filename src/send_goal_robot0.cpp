@@ -21,9 +21,6 @@ int main(int argc, char* argv[])
     ros::NodeHandle nh("~") ;
 
     char *robot_id = argv[1] ;
-    //string robot_name = "robot_" ;
-    //robot_name += robot_id ;
-    //robot_name += "/move_base" ;
     string robot_name = robot_id ;
     robot_name += "/move_base" ;
    
