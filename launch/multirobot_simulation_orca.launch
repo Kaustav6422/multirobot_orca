@@ -192,6 +192,6 @@ Tuning the weights of the local planner takes a lot of art
         <param name="follower_id" value="robot_1" />
      </node> -->
 
-     <node pkg ="multirobot_orca" name = "robot_globalpose"  type = "robot_globalpose"  output = "screen" args="" /> 
+     <node pkg ="multirobot_orca" name = "formation_control"  type = "formation_control"  output = "screen" args="" /> 
               
 </launch>

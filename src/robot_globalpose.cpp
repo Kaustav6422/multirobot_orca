@@ -32,7 +32,7 @@
 
 using namespace std ;
 
-/*
+
 template<typename T, typename S>
 double pointsDistance(const T &one, const S &two)
 {
@@ -48,7 +48,7 @@ double pointsDistance(const T &one, const S &two)
 * @return True if approximately adjacent, false otherwise
 **/
 
-/*
+
 template<typename T, typename S>
 bool pointsNearby(const T &one, const S &two, const double &proximity)
 {
@@ -71,9 +71,9 @@ int getCellIndex(int i,int j) //get the index of the cell to be used in Path
 {
   return (i*width)+j;  
 }
-*/
 
-/*
+
+
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 void goal_callback(const collvoid_msgs::PoseTwistWithCovariance::ConstPtr& data)
 {
@@ -113,11 +113,11 @@ void goal_callback(const collvoid_msgs::PoseTwistWithCovariance::ConstPtr& data)
         //ac.cancelGoalsAtAndBeforeTime(ros::Time::now()) ;
     }      
 }
-*/
+
 
 
 // Global variables
-
+/*
 void formation_callback(const collvoid_msgs::PoseTwistWithCovariance::ConstPtr& data)
 {
 
@@ -130,7 +130,7 @@ void formation_callback(const collvoid_msgs::PoseTwistWithCovariance::ConstPtr& 
   double robot1_y ;
   double robot1_yaw ;
 
-  ros::Publisher cmd_vel_pub = nh_cb.advertise<geometry_msgs::Twist>("/robot_1/mobile_base/commands/velocity",10);
+  ros::Publisher cmd_vel_pub = nh_cb.advertise<geometry_msgs::Twist>("robot_1/mobile_base/commands/velocity",10);
 
   if (data->robot_id == "robot_0")
   { 
@@ -173,7 +173,7 @@ void formation_callback(const collvoid_msgs::PoseTwistWithCovariance::ConstPtr& 
 
   dist_prev = dist ;
 }
-
+*/
 void costmap_callback(const nav_msgs::OccupancyGrid::ConstPtr& msg)
 {
    std_msgs::Header header = msg->header;
@@ -279,8 +279,8 @@ int main(int argc, char **argv)
     ros::init(argc,argv, "robot_gloalpose");
     ros::NodeHandle nh ;
 
-    //ros::Subscriber robotmaptf_sub =  nh.subscribe("position_share", 10, goal_callback);
-    ros::Subscriber formation_control_sub = nh.subscribe("position_share", 10, formation_callback);
+    ros::Subscriber robotmaptf_sub =  nh.subscribe("position_share", 10, goal_callback);
+    //ros::Subscriber formation_control_sub = nh.subscribe("position_share", 10, formation_callback);
 
     //ros::Subscriber costmap_sub    =  nh.subscribe("/robot_0/move_base/local_costmap/costmap", 1000, costmap_callback);
     //costmap_sub_        = nh_.subscribe("move_base/global_costmap/costmap", 10, costmapCb);
