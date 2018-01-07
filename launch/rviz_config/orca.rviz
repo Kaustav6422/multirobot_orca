@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /LaserScan1
-        - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 420
@@ -237,18 +236,94 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        base_camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_camera_stand:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_laser_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_depth_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_depth_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rgb_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rgb_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        caster_back_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        caster_front_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        cliff_sensor_front_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        cliff_sensor_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        cliff_sensor_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        gyro_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        wheel_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: Robot2_Model
       Robot Description: /robot_2/robot_description
       TF Prefix: /robot_2
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: true
     - Alpha: 0.699999988
       Class: rviz/Map
@@ -417,6 +492,42 @@ Visualization Manager:
           Value: false
         robot_1/wheel_right_link:
           Value: false
+        robot_2/base_camera_link:
+          Value: false
+        robot_2/base_camera_stand:
+          Value: false
+        robot_2/base_footprint:
+          Value: false
+        robot_2/base_laser_link:
+          Value: false
+        robot_2/base_link:
+          Value: true
+        robot_2/camera_depth_frame:
+          Value: false
+        robot_2/camera_depth_optical_frame:
+          Value: false
+        robot_2/camera_rgb_frame:
+          Value: false
+        robot_2/camera_rgb_optical_frame:
+          Value: false
+        robot_2/caster_back_link:
+          Value: false
+        robot_2/caster_front_link:
+          Value: false
+        robot_2/cliff_sensor_front_link:
+          Value: false
+        robot_2/cliff_sensor_left_link:
+          Value: false
+        robot_2/cliff_sensor_right_link:
+          Value: false
+        robot_2/gyro_link:
+          Value: false
+        robot_2/odom:
+          Value: true
+        robot_2/wheel_left_link:
+          Value: false
+        robot_2/wheel_right_link:
+          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -481,6 +592,35 @@ Visualization Manager:
                 robot_1/wheel_left_link:
                   {}
                 robot_1/wheel_right_link:
+                  {}
+          robot_2/odom:
+            robot_2/base_footprint:
+              robot_2/base_link:
+                robot_2/base_camera_stand:
+                  robot_2/base_camera_link:
+                    robot_2/camera_depth_frame:
+                      robot_2/camera_depth_optical_frame:
+                        {}
+                    robot_2/camera_rgb_frame:
+                      robot_2/camera_rgb_optical_frame:
+                        {}
+                robot_2/base_laser_link:
+                  {}
+                robot_2/caster_back_link:
+                  {}
+                robot_2/caster_front_link:
+                  {}
+                robot_2/cliff_sensor_front_link:
+                  {}
+                robot_2/cliff_sensor_left_link:
+                  {}
+                robot_2/cliff_sensor_right_link:
+                  {}
+                robot_2/gyro_link:
+                  {}
+                robot_2/wheel_left_link:
+                  {}
+                robot_2/wheel_right_link:
                   {}
       Update Interval: 0
       Value: true
@@ -564,7 +704,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.11521053
+      Distance: 9.66755486
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1

@@ -169,7 +169,8 @@ add_executable(follower_goal src/follower_goal.cpp)
 #add_executable(follower_navigation src/follower_navigation.cpp)
 #add_executable(robot_globalpose src/robot_globalpose.cpp)
 add_executable(costmap_node src/costmap_node.cpp)
-add_executable(formation_control src/formation_control.cpp)
+add_executable(formation_control_new1 src/formation_control_new1.cpp)
+add_executable(formation_control_new2 src/formation_control_new2.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -198,8 +199,9 @@ target_link_libraries(follower_goal ${catkin_LIBRARIES})
 #target_link_libraries(follower_navigation ${catkin_LIBRARIES})
 #target_link_libraries(robot_globalpose ${catkin_LIBRARIES})
 target_link_libraries(costmap_node ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-target_link_libraries(formation_control ${catkin_LIBRARIES})
-#target_link_libraries(costmap_2d ${PCL_LIBRARIES})
+target_link_libraries(formation_control_new1 ${catkin_LIBRARIES})
+target_link_libraries(formation_control_new2 ${catkin_LIBRARIES})
+
 
  
 # )

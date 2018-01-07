@@ -15,27 +15,25 @@
      <rosparam command="load" file="$(find collvoid_stage)/params/collvoid_config.yaml" />
      <rosparam command="load" file="$(find collvoid_stage)/params/collvoid_common.yaml" ns="CollvoidLocalPlanner" /> 
      
-     <remap from="cmd_vel" to="mobile_base/commands/velocity"/> <!-- for kobuki -->
+     <remap from="cmd_vel" to="mobile_base/commands/velocity"/> 
      <remap from="map" to="/map" />   
      <param name="~controlled" value="$(arg controlled)" />
      <param name="~tf_prefix" value="$(arg robot)" />
 
      <param name="global_costmap/global_frame" value="map"/>  
-     <param name="global_costmap/robot_base_frame" value="$(arg robot)/base_link"/>  <!--from collvoid --> 
+     <param name="global_costmap/robot_base_frame" value="$(arg robot)/base_link"/>  
      <param name="global_costmap/laser_scan_sensor/sensor_frame" value="hokuyo_link"/> 
      <param name="global_costmap/laser_scan_sensor/topic" value="$(arg robot)/base_scan"/> 
 
      <param name="local_costmap/global_frame" value="$(arg robot)/odom"/> 
-     <param name="local_costmap/robot_base_frame" value="$(arg robot)/base_link"/> <!--from collvoid --> 
+     <param name="local_costmap/robot_base_frame" value="$(arg robot)/base_link"/> 
      <param name="local_costmap/laser_scan_sensor/sensor_frame" value="hokuyo_link"/> 
      <param name="local_costmap/laser_scan_sensor/topic" value="$(arg robot)/base_scan"/> 
      <param name="local_costmap/obstacle_layer/laser_scan_sensor/topic" value="$(arg robot)/base_scan"/> 
 
-     <!-- <param name="base_global_planner" type="string" value="navfn/NavfnROS" /> -->
-     <!-- <param name="base_local_planner" value="collvoid_local_planner/CollvoidLocalPlanner" />  -->
-     <!-- <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/> -->  <!-- added from clearpath robotics website -->  
-         
-  </node>
+     <param name="base_global_planner" type="string" value="navfn/NavfnROS" />
+     <param name="base_local_planner" value="collvoid_local_planner/CollvoidLocalPlanner" /> 
+  </node> 
 
   <rosparam command="load" file="$(find collvoid_stage)/params/me_publisher_turtle.yaml"/> ####
   <rosparam command="load" file="$(find collvoid_stage)/params/collvoid_common.yaml" ns="collvoid" /> #### 

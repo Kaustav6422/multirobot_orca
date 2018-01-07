@@ -170,8 +170,8 @@ Tuning the weights of the local planner takes a lot of art
 
      <!-- <node pkg="FormationControl" type="global_planner" name="formationcontrol" output="screen" args=""/> -->
 
-     <param name="tf_prefix_leader"   value="robot_0" />
-     <param name="tf_prefix_follower" value="robot_1" />
+     <!-- <param name="tf_prefix_leader"   value="robot_0" />
+     <param name="tf_prefix_follower" value="robot_1" /> -->
 
      # Robot 0       
      <!-- <node pkg ="multirobot_orca" name = "send_goal_robot0" type = "send_goal" output = "screen" args="robot_0">
@@ -192,6 +192,6 @@ Tuning the weights of the local planner takes a lot of art
         <param name="follower_id" value="robot_1" />
      </node> -->
 
-     <node pkg ="multirobot_orca" name = "formation_control"  type = "formation_control"  output = "screen" args="" /> 
+     <node pkg ="multirobot_orca" name = "formation_control_new2"  type = "formation_control_new2"  output = "screen" args="" /> 
               
 </launch>

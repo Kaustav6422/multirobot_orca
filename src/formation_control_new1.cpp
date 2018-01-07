@@ -38,19 +38,22 @@ class formation_control
 public:
 	formation_control()    ;
 	void spin()            ;
-	void update()          ;
 	int signum(double val) ;
-	void update()          ;	
 private: 
 	ros::NodeHandle nh ;
     ros::Publisher cmd_vel_pub ;
     ros::Publisher debug_pub ;
     ros::Subscriber position_share_sub ;
 	void formation_callback(const collvoid_msgs::PoseTwistWithCovariance::ConstPtr& data) ;
-	void init_variables(); 
+	void init_variables()  ;
+	void update()          ; 
 
-	double MIN_DIST ;
-	double GOAL_YAW ;
+	geometry_msgs::Twist debug_msg      ;
+	geometry_msgs::Twist vel_msg        ; 
+
+	double SWARM_DIST ;
+	double SWARM_ANG ;
+	double FORMATION_ANG ;
 
 	double robot0_x ;
     double robot0_y ;
@@ -86,32 +89,45 @@ private:
 
     double g ;
     double omega_n ;
-    double k1,k2,k3 ;
+    double k1,k2,k3, k1_gain, k2_gain ;
     double e1,e2,e3 ;
     double vt1,vt2 ;
+
+    double k_s ;
+    double k_theta ;
+    double k_orientation ; 
+    double e_s ;
+    double e_theta ;
+    double e_orientation ;
+    double theta ;
+    double delta_l ;
 
     double rate ;
     ros::Time t_next ;
     ros::Duration t_delta ;
     double elapsed ;
+    ros::Time then;
 };
 
 formation_control::formation_control()
 {
+	init_variables();
+
     // Publish
-    cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("/robot_1/mobile_base/commands/velocity",10);
-    debug_pub   = nh.advertise<geometry_msgs::Twist>("debug",10);
+    cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("/robot_1/mobile_base/commands/velocity",20);
+    debug_pub   = nh.advertise<geometry_msgs::Twist>("debug",20);
 
     // Subscribe
-    position_share_sub = nh.subscribe("position_share", 100, &formation_control::formation_callback, this);
+    position_share_sub = nh.subscribe("position_share", 50, &formation_control::formation_callback, this);
 }
 
 void formation_control::init_variables()
 {
 	rate = 20 ;
 
-	MIN_DIST = 1 ;
-	GOAL_YAW = 0.785 ;
+	SWARM_DIST = 1 ;
+	SWARM_ANG = 0.785 ;
+	FORMATION_ANG = 0 ;
 
 	robot0_x = 0 ;
     robot0_y = 0 ;
@@ -122,7 +138,7 @@ void formation_control::init_variables()
     robot0_xdotdot = 0;
     robot0_ydotdot = 0;
     robot0_yaw = 0;
-    robot0_vx  = 0;
+    robot0_vx  = 0.05;
     robot0_omega = 0 ; // angular velocity curvature
 
     robot1_x = 0 ;
@@ -145,19 +161,30 @@ void formation_control::init_variables()
     goal_y = 0 ;
     goal_yaw = 0 ;
 
-    g = 10 ;
+    g = 5 ;
     omega_n = 0 ;
-    k1 = 1 ;
-    k2 = 1 ;
-    k3 = 1 ;
+    k1 = 0 ;
+    k2 = 0 ;
+    k1_gain = 1 ;
+    k2_gain = 1 ;
+    k3 = 5 ;
     e1 = 0 ;
     e2 = 0 ;
     e3 = 0 ;
     vt1 = 0 ;
     vt2 = 0 ;
 
+    k_s = 1 ;
+    k_theta = 1 ;
+    k_orientation = 1 ;
+    e_s = 0 ;
+    e_theta = 0 ;
+    e_orientation = 0;
+    theta = 0 ;
+
     t_delta = ros::Duration(1.0 / rate) ;
     t_next = ros::Time::now() + t_delta ; 
+    then = ros::Time::now();
 }
 
 int formation_control::signum(double val)
@@ -207,45 +234,83 @@ void formation_control::update()
 	if ( now > t_next) 
 	{
 		elapsed = now.toSec() - then.toSec(); 
-		ROS_INFO_STREAM("elapsed =" << elapsed);
+		//ROS_INFO_STREAM("elapsed =" << elapsed);
+		//ROS_INFO_STREAM("now =" << now.toSec());
+		//ROS_INFO_STREAM("then =" << then.toSec());
 
-	    goal_x = robot0_x + MIN_DIST*cos(GOAL_YAW) ;
-        goal_y = robot0_y + MIN_DIST*sin(GOAL_YAW) ;
+		FORMATION_ANG = SWARM_ANG - robot0_yaw ;
 
-        robot0_xdotdot = (robot0_xdot - robot0_xdot_prev)/sample_time ;
-        robot0_ydotdot = (robot0_ydot - robot0_ydot_prev)/sample_time ;
-        robot0_omega   = (robot0_xdot*robot0_ydotdot - robot0_xdotdot*robot0_ydot)/pow(robot0_vx,2) ;
+		if (FORMATION_ANG >= 2*M_PI)
+			FORMATION_ANG = FORMATION_ANG - 2*M_PI ;
+		if (FORMATION_ANG <= 2*M_PI)
+			FORMATION_ANG = FORMATION_ANG + 2*M_PI ;
 
-        omega_n           =  sqrt(pow(robot0_omega,2) + g*pow(robot0_vx,2)) ;
-        k1                =  5*omega_n ;
-        k2                =  5*omega_n ;
-        k3                =  g*abs(robot0_vx);
+	    goal_x = robot0_x + SWARM_DIST*cos(FORMATION_ANG) ;
+        goal_y = robot0_y + SWARM_DIST*sin(FORMATION_ANG) ;
 
-        e1                =  cos(robot1_yaw)*(goal_x-robot1_x) + sin(robot1_yaw)*(goal_y-robot1_y) ; // ok
-        e2                = -sin(robot1_yaw)*(goal_x-robot1_x) + cos(robot1_yaw)*(goal_y-robot1_y) ; // ok
-        e3                =  robot0_yaw - robot1_yaw ; //very small
+        robot0_xdotdot = (robot0_xdot - robot0_xdot_prev)/elapsed ;
+        robot0_ydotdot = (robot0_ydot - robot0_ydot_prev)/elapsed ;
 
-        vt1               = -k1*e1 ;
-        vt2               = -k2*signum(robot0_vx)*e2 - k3*e3 ;
+        if (abs(robot0_vx) >= 0.05) 
+        {
+        	robot0_omega   = (robot0_xdot*robot0_ydotdot - robot0_xdotdot*robot0_ydot)/pow(robot0_vx,2) ;
 
-        robot0_xdot_prev = robot0_xdot_prev ;
-        robot0_ydot_prev = robot0_ydot_prev ;
+            omega_n           =  sqrt(pow(robot0_omega,2) + g*pow(robot0_vx,2)) ;
+            k1                =  k1_gain*omega_n ;
+            k2                =  k2_gain*omega_n ;
+            k3                =  g*abs(robot0_vx);
 
-        geometry_msgs::Twist vel_msg ; 
-        vel_msg.linear.x  = robot0_vx*cos(e3) - vt1 ;
-        vel_msg.angular.z = robot0_omega - vt2 ; 
-        cmd_vel_pub.publish(vel_msg) ;
+            e1                =  cos(robot1_yaw)*(goal_x-robot1_x) + sin(robot1_yaw)*(goal_y-robot1_y) ; // ok
+            e2                = -sin(robot1_yaw)*(goal_x-robot1_x) + cos(robot1_yaw)*(goal_y-robot1_y) ; // ok
+            e3                =  robot0_yaw - robot1_yaw ; //very small
 
-        geometry_msgs::Twist debug_msg                        ;
-        debug_msg.linear.x =  robot0_vx*cos(e3) - vt1         ;
-        debug_msg.linear.y =  robot0_omega - vt2              ;
-        debug_msg.linear.z =  robot0_yaw                      ;
-        debug_msg.angular.x = e2                              ;
-        debug_msg.angular.y = e3                              ;
-        debug_msg.angular.z = 0                               ;
-        debug_pub.publish(debug_msg)                          ;
+            vt1               = -k1*e1 ;
+            vt2               = -k2*signum(robot0_vx)*e2 - k3*e3 ;
+
+            robot0_xdot_prev = robot0_xdot      ;
+            robot0_ydot_prev = robot0_ydot      ;
+            
+            vel_msg.linear.x  = robot0_vx*cos(e3) - vt1 ;
+            vel_msg.angular.z = robot0_omega - vt2      ; 
+            cmd_vel_pub.publish(vel_msg) ;
+            
+            debug_msg.linear.x =  robot0_yaw                ;
+            debug_msg.linear.y =  robot1_yaw               ;
+            debug_msg.linear.z =  robot0_omega                      ;
+            debug_msg.angular.x = robot1_y                              ;
+            debug_msg.angular.y = goal_x                             ;
+            debug_msg.angular.z = goal_y                               ;
+            debug_pub.publish(debug_msg)                          ;
+        }
+        else 
+        {
+        	delta_l = sqrt(pow(goal_y-robot1_y,2) + pow(goal_x-robot1_x,2))   ;
+        	theta = atan2(goal_y-robot1_y,goal_x-robot1_x)                    ;
+        	e_theta = theta - robot1_yaw ;
+        	e_orientation = robot0_yaw - robot1_yaw ;
+        	e_s = delta_l*cos(e_theta) ;
+        	vel_msg.linear.x  = k_s*e_s ;
+        	if (delta_l > 0.5)
+        	{
+        		vel_msg.angular.z = k_theta*e_theta ;
+        	}
+        	else
+        	{
+        		vel_msg.angular.z = k_orientation*e_orientation ;
+        	}
+            cmd_vel_pub.publish(vel_msg) ;
+        }
+        
+
+        then = now;
+
+        ros::spinOnce();
 	}
-	else { ; } 
+	else 
+	{
+		ROS_INFO_STREAM("LOOP MISSED");
+	} 
+    
 }
 
 void formation_control::spin()
