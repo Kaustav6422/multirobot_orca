@@ -135,9 +135,9 @@ formation_control::formation_control()
 	init_variables();
 
     // Publish
+    cmd_vel_leader_pub    = nh.advertise<geometry_msgs::Twist>("/robot_0/mobile_base/commands/velocity",20) ;
     cmd_vel_pub_follower1 = nh.advertise<geometry_msgs::Twist>("/robot_1/mobile_base/commands/velocity",20);
     cmd_vel_pub_follower2 = nh.advertise<geometry_msgs::Twist>("/robot_2/mobile_base/commands/velocity",20);
-    cmd_vel_leader_pub    = nh.advertise<geometry_msgs::Twist>("/robot_0/mobile_base/commands/velocity",20) ;
     debug_pub             = nh.advertise<geometry_msgs::Twist>("debug",20);  
 
     // Subscribe
@@ -162,7 +162,7 @@ void formation_control::init_variables()
     robot0_xdotdot = 0;
     robot0_ydotdot = 0;
     robot0_yaw = 0;
-    robot0_vx  = 0.05;
+    robot0_vx  = 0;   //correction
     robot0_omega = 0 ; // angular velocity curvature
 
     robot1_x = 0 ;
@@ -198,8 +198,8 @@ void formation_control::init_variables()
     omega_n_robot1 = 0 ;
     omega_n_robot2 = 0 ;
     k1 = 1 ;
-    k2 = 0.5 ;
-    k3 = 0.5 ;
+    k2 = 10 ;
+    k3 = 1 ;
     e1_robot1 = 0 ;
     e2_robot1 = 0 ;
     e3_robot1 = 0 ;
@@ -300,9 +300,9 @@ void formation_control::follower1_update()
     //robot0_xdotdot = (robot0_xdot - robot0_xdot_prev)/elapsed ;
     //robot0_ydotdot = (robot0_ydot - robot0_ydot_prev)/elapsed ;
 
-    if (abs(robot0_vx) > 0.01) 
+    if (abs(robot0_vx) > 0.05) 
     {
-        ROS_INFO_STREAM("Controller TYPE ONE");
+        ROS_INFO_STREAM("Robot_1: Controller TYPE ONE");
 
         //robot0_omega   = (robot0_xdot*robot0_ydotdot - robot0_xdotdot*robot0_ydot)/pow(robot0_vx,2) ;
 
@@ -320,21 +320,21 @@ void formation_control::follower1_update()
     }
     else 
     {
-        ROS_INFO_STREAM("Controller TYPE TWO");
+        ROS_INFO_STREAM("Robot_1: Controller TYPE TWO");
         delta_l_robot1 = sqrt(pow(goal_y_robot1-robot1_y,2) + pow(goal_x_robot1-robot1_x,2))   ;
         theta_robot1 = atan2(goal_y_robot1-robot1_y,goal_x_robot1-robot1_x)                    ;
         e_theta_robot1 = theta_robot1 - robot1_yaw ;
         e_orientation_robot1 = robot0_yaw - robot1_yaw ;
         e_s_robot1 = delta_l_robot1*cos(e_theta_robot1) ;
-        vel_msg_f1.linear.x  = k_s*e_s_robot1 ;
-        if (delta_l_robot1 > 0.05)
-        {
-            vel_msg_f1.angular.z = k_theta*e_theta_robot1 ;
-        }
-        else
-        {
-            vel_msg_f1.angular.z = k_orientation*e_orientation_robot1 ;
-        }
+        vel_msg_f1.linear.x  = 0 ; //k_s*e_s_robot1 ;
+        //if (delta_l_robot1 > 0.05)
+        //{
+            vel_msg_f1.angular.z = 0 ; //k_theta*e_theta_robot1 ; // correction
+        //}
+        //else
+        //{
+        //    vel_msg_f1.angular.z = 0 ; //k_orientation*e_orientation_robot1 ;
+        //}
     }
     cmd_vel_pub_follower1.publish(vel_msg_f1) ;
 }
@@ -380,15 +380,15 @@ void formation_control::follower2_update()
         e_theta_robot2 = theta_robot2 - robot2_yaw ;
         e_orientation_robot2 = robot0_yaw - robot2_yaw ;
         e_s_robot2 = delta_l_robot2*cos(e_theta_robot2) ;
-        vel_msg_f2.linear.x  = k_s*e_s_robot2 ;
-        if (delta_l_robot2 > 0.05)
-        {
-            vel_msg_f2.angular.z = k_theta*e_theta_robot2 ;
-        }
-        else
-        {
-            vel_msg_f2.angular.z = k_orientation*e_orientation_robot2 ;
-        }
+        vel_msg_f2.linear.x  = 0 ; //k_s*e_s_robot2 ;
+        //if (delta_l_robot2 > 0.05)
+        //{
+            vel_msg_f2.angular.x =  0 ; //k_theta*e_theta_robot2 ;
+        //}
+        //else
+        //{
+        //    vel_msg_f2.angular.z = 0 ;// k_orientation*e_orientation_robot2 ;
+        //}
     }
     cmd_vel_pub_follower2.publish(vel_msg_f2) ;
 }
@@ -413,8 +413,8 @@ void formation_control::update()
         robot0_xdot_prev = robot0_xdot ;
         robot0_ydot_prev = robot0_ydot ;
         
-        debug_msg.linear.x =  robot1_x           ;
-        debug_msg.linear.y =  robot1_y           ;
+        debug_msg.linear.x =  robot0_vx          ;
+        debug_msg.linear.y =  0          ;
         debug_msg.linear.z =  0              ;
         debug_msg.angular.x = 0               ;
         debug_msg.angular.y = goal_x_robot1                   ;

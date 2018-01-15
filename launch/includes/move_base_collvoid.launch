@@ -35,12 +35,12 @@
      <param name="base_local_planner" value="collvoid_local_planner/CollvoidLocalPlanner" /> 
   </node> 
 
-  <rosparam command="load" file="$(find collvoid_stage)/params/me_publisher_turtle.yaml"/> ####
-  <rosparam command="load" file="$(find collvoid_stage)/params/collvoid_common.yaml" ns="collvoid" /> #### 
-  <param name="collvoid/base_frame" value="$(arg robot)/base_link" /> ####
+  <rosparam command="load" file="$(find collvoid_stage)/params/me_publisher_turtle.yaml"/> 
+  <rosparam command="load" file="$(find collvoid_stage)/params/collvoid_common.yaml" ns="collvoid" /> 
+  <param name="collvoid/base_frame" value="$(arg robot)/base_link" /> 
 
-  <node pkg="collvoid_local_planner" type="MePublisher" name="me_publisher"  /> ####
-  <node pkg="collvoid_controller" type="position_share_controller.py" name="position_share_controller"  /> ####
+  <node pkg="collvoid_local_planner" type="MePublisher" name="me_publisher"  /> 
+  <node pkg="collvoid_controller" type="position_share_controller.py" name="position_share_controller"  /> -->
 
   <!--<node pkg="collvoid_controller" type="active_collision_avoidance.py" name="active_collvoid">
      <param name="~base_frame_id" value="$(arg robot)/base_link" />

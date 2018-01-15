@@ -17,16 +17,25 @@
       <param name="base_frame_id" value="robot_0/base_link" /> 
     </node>
     <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="0 -3 0 -1.57 0 0 /map robot_0/odom 100" /> -->
-    <include file="$(find multirobot_orca)/launch/includes/amcl_orca.launch.xml">
+    <!-- <include file="$(find multirobot_orca)/launch/includes/amcl_orca.launch.xml">
       <arg name="robot" value="robot_0" />
       <arg name="initial_pose_x" value="0" /> # rviz
       <arg name="initial_pose_y" value="0" />
       <arg name="initial_pose_a" value="-1.57" />
-    </include> 
+    </include> --> 
     <include file="$(find multirobot_orca)/launch/includes/move_base_collvoid.launch">
       <arg name="robot" value="robot_0"/>
       <arg name="type" value="turtle"/>
       <arg name="controlled" value="true"/>
+    </include> 
+    <include file="$(find multirobot_orca)/launch/includes/amcl_diff_multi.launch">
+          <arg name="tf_prefix" value="robot_0" />
+          <arg name="scan_topic" value="/robot_0/base_scan" />
+          <arg name="use_map_topic" value="true" /> 
+          <arg name="initial_pose_x" value="0.0" />
+          <arg name="initial_pose_y" value="0.0" />
+          <arg name="initial_pose_a" value="-1.57" />
+          <arg name="global_frame_id" value="/map" />
     </include>
     <node pkg="collvoid_controller" type="controller_robots.py" name="controller_robots" />
     <node name="joy_node" pkg="joy" type="joy_node" output="screen" clear_params="true">
@@ -41,20 +50,29 @@
 
   <group ns="robot_1">
     <include file="$(find multirobot_orca)/launch/robot.launch"> 
-      <arg name="init_pose" value="-x 0 -y 1 -z 0 -Y -1.57" />     
+      <arg name="init_pose" value="-x 0 -y -1 -z 0 -Y -1.57" />     
       <arg name="robot_name" value="robot_1" />
     </include>
-    <node pkg="fake_localization" type="fake_localization" name="fake_localization" respawn="false" output="screen">
+    <!-- <node pkg="fake_localization" type="fake_localization" name="fake_localization" respawn="false" output="screen">
       <param name="odom_frame_id" value="robot_1/odom" />
       <param name="base_frame_id" value="robot_1/base_link" /> 
-    </node>
-    <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="0 1 0 -1.57 0 0 /map robot_1/odom 100" /> 
+    </node> 
+    <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="0 2 0 -1.57 0 0 /map robot_1/odom 100" /> -->
     <!-- <include file="$(find multirobot_orca)/launch/includes/amcl_orca.launch.xml">
       <arg name="robot" value="robot_1" />
       <arg name="initial_pose_x" value="0" />
       <arg name="initial_pose_y" value="2" />
       <arg name="initial_pose_a" value="-1.57" />
     </include> --> 
+    <include file="$(find multirobot_orca)/launch/includes/amcl_diff_multi.launch">
+          <arg name="tf_prefix" value="robot_1" />
+          <arg name="scan_topic" value="/robot_1/base_scan" />
+          <arg name="use_map_topic" value="true" /> 
+          <arg name="initial_pose_x" value="0.0" />
+          <arg name="initial_pose_y" value="2.0" />
+          <arg name="initial_pose_a" value="-1.57" />
+          <arg name="global_frame_id" value="/map" />
+    </include>
     <include file="$(find multirobot_orca)/launch/includes/move_base_collvoid.launch">
       <arg name="robot" value="robot_1"/>
       <arg name="type" value="turtle"/>

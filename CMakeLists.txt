@@ -15,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   diagnostic_aggregator
   gazebo_ros
   geometry_msgs
-  kobuki_gazebo_plugins
+  kobuki_gazebo_plugins # leftout
   robot_pose_ekf
   robot_state_publisher
   roscpp
@@ -68,12 +68,12 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-   FILES
-   PoseTwistWithCovariance.msg
+#add_message_files(
+#   FILES
+#   PoseTwistWithCovariance.msg
 #   Message1.msg
 #   Message2.msg
-)
+#)
 
 ## Generate services in the 'srv' folder
 # add_service_files(

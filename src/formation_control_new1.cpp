@@ -19,6 +19,14 @@
 #include "nav_msgs/MapMetaData.h"
 #include "std_msgs/Header.h"
 #include "nav_msgs/MapMetaData.h"
+#include "nav_msgs/Odometry.h"
+#include <sensor_msgs/Joy.h>
+
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
+
 
 using namespace std ;
 
@@ -43,10 +51,18 @@ private:
 	ros::NodeHandle nh ;
     ros::Publisher cmd_vel_pub ;
     ros::Publisher debug_pub ;
+    ros::Publisher cmd_vel_leader_pub ;
     ros::Subscriber position_share_sub ;
+    ros::Subscriber odom_leader_sub ;
+    ros::Subscriber odom_robot1_sub ;
+    ros::Subscriber joy_sub ;
 	void formation_callback(const collvoid_msgs::PoseTwistWithCovariance::ConstPtr& data) ;
+    void odom_callback_leader(const nav_msgs::Odometry::ConstPtr& msg) ;
+	void odom_callback_robot1(const nav_msgs::Odometry::ConstPtr& msg) ;
+	void joystick_callback(const sensor_msgs::Joy::ConstPtr& joy) ;
 	void init_variables()  ;
-	void update()          ; 
+	void update()          ;
+	void write_robot1_data(std::string filename) ;
 
 	geometry_msgs::Twist debug_msg      ;
 	geometry_msgs::Twist vel_msg        ; 
@@ -115,10 +131,24 @@ formation_control::formation_control()
 
     // Publish
     cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("/robot_1/mobile_base/commands/velocity",20);
+    cmd_vel_leader_pub = nh.advertise<geometry_msgs::Twist>("/robot_0/mobile_base/commands/velocity",20);
     debug_pub   = nh.advertise<geometry_msgs::Twist>("debug",20);
 
     // Subscribe
-    position_share_sub = nh.subscribe("position_share", 50, &formation_control::formation_callback, this);
+    //position_share_sub = nh.subscribe("position_share", 50, &formation_control::formation_callback, this);
+    joy_sub         = nh.subscribe("robot_0/joy",50,&formation_control::joystick_callback,this) ;
+    odom_leader_sub = nh.subscribe("/robot_0/odom", 50, &formation_control::odom_callback_leader, this) ;
+    odom_robot1_sub = nh.subscribe("/robot_1/odom", 50, &formation_control::odom_callback_robot1, this) ;
+}
+
+void formation_control::joystick_callback(const sensor_msgs::Joy::ConstPtr& joy)
+{
+    geometry_msgs::Twist leader_vel_msg ;
+    double joystick_vd = joy->axes[1] ;
+    double joystick_wd = joy->axes[2] ;
+    leader_vel_msg.linear.x =  joystick_vd;
+    leader_vel_msg.angular.z = joystick_wd;
+    cmd_vel_leader_pub.publish(leader_vel_msg);
 }
 
 void formation_control::init_variables()
@@ -167,7 +197,7 @@ void formation_control::init_variables()
     k2 = 0 ;
     k1_gain = 1 ;
     k2_gain = 1 ;
-    k3 = 5 ;
+    k3 = 1 ;
     e1 = 0 ;
     e2 = 0 ;
     e3 = 0 ;
@@ -194,6 +224,37 @@ int formation_control::signum(double val)
     return 0;
 }
 
+
+void formation_control::odom_callback_leader(const nav_msgs::Odometry::ConstPtr& data) 
+{
+	robot0_x = data->pose.pose.position.x ;
+	robot0_y = data->pose.pose.position.y ;
+	tf::Quaternion q_robot0(data->pose.pose.orientation.x, data->pose.pose.orientation.y, data->pose.pose.orientation.z, data->pose.pose.orientation.w);
+    tf::Matrix3x3 m_robot0(q_robot0);
+    double roll, pitch, yaw;
+    m_robot0.getRPY(roll, pitch, yaw);
+    robot0_yaw = yaw ;
+    robot0_vx = data->twist.twist.linear.x ;
+    robot0_xdot = robot0_vx*cos(robot0_yaw) ;
+    robot0_ydot = robot0_vx*sin(robot0_yaw) ;
+}
+
+void formation_control::odom_callback_robot1(const nav_msgs::Odometry::ConstPtr& data)
+{
+	robot1_x = data->pose.pose.position.x ;
+    robot1_y = data->pose.pose.position.y ;
+    tf::Quaternion q_robot1(data->pose.pose.orientation.x, data->pose.pose.orientation.y, data->pose.pose.orientation.z, data->pose.pose.orientation.w);
+    tf::Matrix3x3 m_robot1(q_robot1);
+    double roll, pitch, yaw;
+    m_robot1.getRPY(roll, pitch, yaw);
+    robot1_yaw = yaw ;
+    robot1_vx = data->twist.twist.linear.x ;
+    robot1_xdot = robot1_vx*cos(robot1_yaw) ;
+    robot1_ydot = robot1_vx*sin(robot1_yaw) ;
+}
+
+
+/*
 void formation_control::formation_callback(const collvoid_msgs::PoseTwistWithCovariance::ConstPtr& data)
 {
 	if (data->robot_id == "robot_0")
@@ -226,6 +287,7 @@ void formation_control::formation_callback(const collvoid_msgs::PoseTwistWithCov
         robot1_ydot = robot1_vx*sin(robot1_yaw) ;
 	}
 }
+*/
 
 void formation_control::update()
 {
@@ -289,15 +351,15 @@ void formation_control::update()
         	e_theta = theta - robot1_yaw ;
         	e_orientation = robot0_yaw - robot1_yaw ;
         	e_s = delta_l*cos(e_theta) ;
-        	vel_msg.linear.x  = k_s*e_s ;
-        	if (delta_l > 0.5)
-        	{
-        		vel_msg.angular.z = k_theta*e_theta ;
-        	}
-        	else
-        	{
-        		vel_msg.angular.z = k_orientation*e_orientation ;
-        	}
+        	vel_msg.linear.x  = 0 ; //k_s*e_s ;
+        	//if (delta_l > 0.5)
+        	//{
+        		vel_msg.angular.z = 0 ; //k_theta*e_theta ;
+        	//}
+        	//else
+        	//{
+        	//	vel_msg.angular.z = 0 ; //k_orientation*e_orientation ;
+        	//}
             cmd_vel_pub.publish(vel_msg) ;
         }
         
@@ -319,9 +381,19 @@ void formation_control::spin()
     while (ros::ok())
 	{
 	   update();
+	   write_robot1_data("/home/kaustav/catkin_ws/src/multirobot_orca/data/robot1_data.txt") ;
 	   loop_rate.sleep();
 	}
-}  
+} 
+
+void formation_control::write_robot1_data(std::string filename) 
+{
+	// You don't need to modify this file.
+	std::ofstream dataFile;
+	dataFile.open(filename.c_str(), std::ios::app);
+	dataFile << robot1_x << " " << robot1_y << " " << robot1_yaw << " " << robot1_vx << " " << robot1_wx << "\n";
+	dataFile.close();
+} 
   
 
 int main(int argc, char **argv)
