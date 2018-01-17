@@ -9,7 +9,7 @@
 
   <group ns="robot_0">
     <include file="$(find multirobot_orca)/launch/robot.launch"> 
-      <arg name="init_pose" value="-x 0.0 -y -3.0 -z 0 -Y 0" />    # For gazebo  
+      <arg name="init_pose" value="-x -4.0 -y -3.0 -z 0 -Y 0" />    # For gazebo  
       <arg name="robot_name" value="robot_0" />
     </include>
     <!-- <node pkg="fake_localization" type="fake_localization" name="fake_localization" respawn="false" output="screen">
@@ -27,7 +27,7 @@
           <arg name="tf_prefix" value="robot_0" />
           <arg name="scan_topic" value="/robot_0/base_scan" />
           <arg name="use_map_topic" value="true" /> 
-          <arg name="initial_pose_x" value="0.0" />
+          <arg name="initial_pose_x" value="-4.0" />
           <arg name="initial_pose_y" value="0.0" />
           <arg name="initial_pose_a" value="0" />
           <arg name="global_frame_id" value="/map" />
@@ -47,7 +47,7 @@
 
   <group ns="robot_1">
     <include file="$(find multirobot_orca)/launch/robot.launch"> 
-      <arg name="init_pose" value="-x 0 -y -5 -z 0 -Y 0" />     
+      <arg name="init_pose" value="-x -4 -y -4 -z 0 -Y 0" />     
       <arg name="robot_name" value="robot_1" />
     </include>
     <!-- <node pkg="fake_localization" type="fake_localization" name="fake_localization" respawn="false" output="screen">
@@ -65,8 +65,8 @@
           <arg name="tf_prefix" value="robot_1" />
           <arg name="scan_topic" value="/robot_1/base_scan" />
           <arg name="use_map_topic" value="true" /> 
-          <arg name="initial_pose_x" value="0.0" />
-          <arg name="initial_pose_y" value="-2.0" />
+          <arg name="initial_pose_x" value="-4.0" />
+          <arg name="initial_pose_y" value="-1.0" />
           <arg name="initial_pose_a" value="0" />
           <arg name="global_frame_id" value="/map" />
     </include>
@@ -78,27 +78,23 @@
     <node pkg="collvoid_controller" type="controller_robots.py" name="controller_robots" /> 
   </group>
 
-  <!-- <group ns="robot_2">
+  <group ns="robot_2">
     <include file="$(find multirobot_orca)/launch/robot.launch"> 
-      <arg name="init_pose" value="-x 0 -y 1 -z 0 -Y -1.57" />     
+      <arg name="init_pose" value="-x -4 -y -2 -z 0 -Y 0" />     
       <arg name="robot_name" value="robot_2" />
     </include>
-
-
-    <node pkg="fake_localization" type="fake_localization" name="fake_localization" respawn="false" output="screen">
+    <!-- <node pkg="fake_localization" type="fake_localization" name="fake_localization" respawn="false" output="screen">
       <param name="odom_frame_id" value="robot_2/odom" />
       <param name="base_frame_id" value="robot_2/base_link" /> 
     </node>
-    <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="0 4 0 -1.57 0 0 /map robot_2/odom 100" /> 
-
-
+    <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="0 4 0 -1.57 0 0 /map robot_2/odom 100" /> --> 
     <include file="$(find multirobot_orca)/launch/includes/amcl_diff_multi.launch">
           <arg name="tf_prefix" value="robot_2" />
           <arg name="scan_topic" value="/robot_2/base_scan" />
           <arg name="use_map_topic" value="true" /> 
-          <arg name="initial_pose_x" value="0.0" />
-          <arg name="initial_pose_y" value="4.0" />
-          <arg name="initial_pose_a" value="-1.57" />
+          <arg name="initial_pose_x" value="-4.0" />
+          <arg name="initial_pose_y" value="1.0" />
+          <arg name="initial_pose_a" value="0" />
           <arg name="global_frame_id" value="/map" />
     </include>  
     <include file="$(find multirobot_orca)/launch/includes/move_base_collvoid.launch">
@@ -107,6 +103,6 @@
       <arg name="controlled" value="true"/>
     </include> 
     <node pkg="collvoid_controller" type="controller_robots.py" name="controller_robots" /> 
-  </group> -->   
+  </group>    
 
 </launch>
