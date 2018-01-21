@@ -1,0 +1,152 @@
+%% Initialization
+ clear all;
+ close all;
+ clc;
+ 
+ % Times
+ T_c = 0.1;
+ T = 260;
+ t = [1:T];
+ 
+ % Gains
+ K_p1 = 1;
+ K_p2 = 1;
+ K_v1 = 1;
+ K_v2 = 1;
+ 
+ % Empty arrays
+ X = zeros(T,1);
+ Y = zeros(T,1);
+ THETA = zeros(T,1);
+ X_R = zeros(T, 1);
+ Y_R = zeros(T, 1);
+ DX_R = zeros(T,1);
+ DY_R = zeros(T,1);
+ D2X_R = zeros(T,1);
+ D2Y_R = zeros(T,1);
+ DCSI= zeros(T,1);
+ V_D = zeros(T,1);
+ OMEGA_D = zeros(T,1);
+ EX = zeros(T,1);
+ EY = zeros(T,1);
+ ERR = zeros(T,1);
+ 
+ % Desired trajectory over time
+ for k = 1:T
+   X_R(k)=k/200+sin(k/100)/1000;
+   Y_R(k)=k/1000+ cos(k/20)/10;
+ 
+ end
+ 
+ % Derivative of the desired trajectory over time
+ DX_R = deriva(X_R, T_c);
+ DY_R = deriva(Y_R, T_c);
+ % Doubled-derivative of the desired trajectory over time
+ D2X_R = deriva(DX_R, T_c);
+ D2Y_R = deriva(DY_R, T_c);  
+ 
+ % Initial conditions
+ x0 = 0.5;
+ y0 = 0.5;
+ theta0 = pi;
+ X(1) = x0;
+ Y(1) = y0;
+ THETA(1)= theta0;
+ V_D(1) = sqrt((DX_R(1))^2+(DY_R(1))^2);
+ OMEGA_D(1) = ((D2Y_R(1)*DX_R(1))-(D2X_R(1)*DY_R(1)))/V_D(1);
+ 
+ % Graphic stuff
+ a = [-1 -1]';
+ b = [2 0]';
+ c = [-1 1]';
+ P = 0.03*[a b c]; %matrix with points of vertices and also scaled
+ 
+ scrsz = get(0,'Screensize');
+ %fig = figure('Position',[1 1 scrsz(3) scrsz(4)]);
+ fig = figure('Position',[1 1 800 600]);
+ set(fig,'DoubleBuffer','on');
+ axis([0 1.5 -0.1 0.6]);
+ axis tight
+ set(gca,'xlim',[0 1.5],'ylim',[-0.2 0.6],'NextPlot','replace','Visible','off');
+ mov = avifile('tracking.avi','Compression', 'None', 'Quality', 100);
+ 
+ pause(1);
+ 
+ %% Main loop (it generates a .avi)
+ for k = 2:T-1  
+   % two-wheels robot model
+   X(k)=X(k-1)+V_D(k-1)*cos(THETA(k-1))*T_c;
+   Y(k)=Y(k-1)+V_D(k-1)*sin(THETA(k-1))*T_c;
+   THETA(k) = THETA(k-1)+OMEGA_D(k-1)*T_c;
+   
+   dx = (X(k)-X(k-1))/T_c;
+   dy = (Y(k)-Y(k-1))/T_c;
+   
+   % dynamic feedback linearization
+   u1      = D2X_R(k) + K_v1*(DX_R(k)-dx) + K_p1*(X_R(k)-X(k));
+   u2      = D2Y_R(k) + K_v1*(DY_R(k)-dy) + K_p1*(Y_R(k)-Y(k));
+   DCSI(k) = u1*cos(THETA(k)) + u2*sin(THETA(k));
+   
+   V_D(k) = integra(DCSI, T_c); % integration
+   OMEGA_D(k) = (u2*cos(THETA(k))-u1*sin(THETA(k)))/V_D(k);
+   
+   % controls saturation
+   if abs(V_D(k))&gt;5
+     V_D(k)= 5*sign(V_D(k));
+   end
+   if abs(OMEGA_D(k))&gt;5
+     OMEGA_D(k)= 5*sign(OMEGA_D(k));
+   end
+   
+   % errors calculation
+   EX(k) = X_R(k)-X(k);
+   EY(k) = Y_R(k)-Y(k);
+   ERR(k) = sqrt(EX(k)^2+EY(k)^2);
+   
+  % Graphic stuff
+  if k &gt; 2
+    subplot(2,1,1)
+    h = plot(X(k),Y(k),'o','Markersize', 11, 'MarkerEdgeColor','b');
+    axis equal; axis([0 1.5 -0.2 0.6]); hold on;
+    plot(X_R(2:k), Y_R(2:k),'-r'); plot(X(2:k),Y(2:k),':')
+    R = [ cos(THETA(k)) -sin(THETA(k)); sin(THETA(k)) cos(THETA(k))]; % rotation matrix to rotate car.
+    Prot = R*P; %rotated car
+    Prot_trasl = Prot + [ones(1,3)*X(k); ones(1,3)*Y(k)]; % add offset of car's center
+    patch(Prot_trasl(1,:),Prot_trasl(2,:),'b');
+    hold off;
+    set(h,'EraseMode','xor');
+    subplot(2,1,2)
+    plot(ERR(2:k),'r','LineWidth',2); axis([0 T -0.1 1]); ylabel('Errore quadratico'); xlabel('t');
+    F = getframe(gcf);
+    mov = addframe(mov,F);
+  end
+   
+ end
+ mov = close(mov);
+ 
+ %% Support plots
+ X(T) = X(T-1);
+ Y(T) = Y(T-1);
+ figure; plot(X_R, Y_R,'r');
+ hold on; plot(X,Y);
+ figure; plot(V_D), ylabel('v');
+ figure; plot(OMEGA_D), ylabel('omega');
+ figure; plot(THETA), ylabel('theta');
+ figure; plot(EX); hold on; plot(EY,'r'); ylabel('errori x e y');
+ 
+ %% Support function to declare in other integra.m file
+ function xint = integra(X, T)
+ N = length(X);
+ xint = 0;
+ for k = 2:N
+   xint=xint+(T)*X(k-1)+(T/2)*(X(k)-X(k-1));
+ end
+ 
+ %% Support functions to declare in other deriva.m file
+ function DX = deriva(X, T)
+ N = length(X);
+ DX = zeros(N,1);
+ for k = 2:N
+   DX(k)=(X(k)-X(k-1))/T;
+ end
+ DX(1)=DX(2); 

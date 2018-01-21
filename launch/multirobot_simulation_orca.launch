@@ -133,36 +133,19 @@ Tuning the weights of the local planner takes a lot of art
 
      <param name="/use_sim_time" value="true"/> 
 
-     <!-- <node name="map_server" pkg="map_server" type="map_server" args="$(find collvoid_stage)/world/swarmlab_map.yaml"/> -->
-
-     <!--<rosparam command="load" file="$(find collvoid_stage)/params/stage_params.yaml"/> 
-     <rosparam command="load" file="$(find collvoid_stage)/params_created.yaml"/> -->     #goals
-
-     <!-- Run the map server -->
-     <!-- Notice the param frame_id in map_server node. By default frame_id is set to map and as map is shared for all robots, we need -->
-     <!-- only one map and therefore we have to force the frame_id to fully qualified name /map -->
      <node name="map_server" pkg="map_server" type="map_server" args="$(find multirobot_orca)/map.yaml" >
           <param name="frame_id" value="/map" />
      </node>
 -
-     <!-- Run Gazebo -->
      <include file="$(find gazebo_ros)/launch/empty_world.launch">
           <arg name="use_sim_time" value="true"/>
           <arg name="debug" value="false"/>
-          <arg name="world_name" value="$(find multirobot_fame)/worlds/kaustav1.world"/>  
+          <arg name="world_name" value="$(find multirobot_fame)/worlds/kaustav1.world"/> 
+          <!-- <arg name="world_name" value="$(find multirobot_fame)/worlds/formation.world"/> --> 
      </include>
  
      <include file="$(find multirobot_orca)/launch/robots_orca.launch" /> 
 
-     <!-- Publications: 
-      * /obstacles [geometry_msgs/PoseArray]
-      * /goals [geometry_msgs/PoseArray]
-      * /commands_robot [std_msgs/String]
-      * /rosout [rosgraph_msgs/Log]
-
-          Subscriptions: 
-      * /position_share [collvoid_msgs/PoseTwistWithCovariance]
-      * /clock [rosgraph_msgs/Clock] -->
      <node pkg="collvoid_controller" type="controller.py" name="controller" output="screen"/>
      <node pkg="collvoid_controller" type="collvoid_visualizer.py" name="controller_viz" output="screen"/> <!-- publishes /found_robots [visualization_msgs/MarkerArray] for visualization purposes -->
 
@@ -192,8 +175,8 @@ Tuning the weights of the local planner takes a lot of art
         <param name="follower_id" value="robot_1" />
      </node> -->
 
-     <node pkg ="multirobot_orca" name = "formation_control_new1"  type = "formation_control_new1"  output = "screen" args="" /> 
-
+     <node pkg ="multirobot_orca" name = "formation_control_dynfeedbacklin"  type = "formation_control_dynfeedbacklin"  output = "screen" args="" /> 
+     <!-- <node pkg ="multirobot_orca" name = "formation_control_new1"  type = "formation_control_new1"  output = "screen" args="" /> -->
      <!-- <node pkg ="multirobot_orca" name = "cvx"  type = "cvx.py"  output = "screen" args="" /> -->
               
 </launch>

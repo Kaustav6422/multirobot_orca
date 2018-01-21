@@ -47,7 +47,7 @@
 
   <group ns="robot_1">
     <include file="$(find multirobot_orca)/launch/robot.launch"> 
-      <arg name="init_pose" value="-x -4 -y -4 -z 0 -Y 0" />     
+      <arg name="init_pose" value="-x -4 -y -3.5 -z 0 -Y 0" />     
       <arg name="robot_name" value="robot_1" />
     </include>
     <!-- <node pkg="fake_localization" type="fake_localization" name="fake_localization" respawn="false" output="screen">
@@ -66,7 +66,7 @@
           <arg name="scan_topic" value="/robot_1/base_scan" />
           <arg name="use_map_topic" value="true" /> 
           <arg name="initial_pose_x" value="-4.0" />
-          <arg name="initial_pose_y" value="-1.0" />
+          <arg name="initial_pose_y" value="-0.5" />
           <arg name="initial_pose_a" value="0" />
           <arg name="global_frame_id" value="/map" />
     </include>
@@ -80,7 +80,7 @@
 
   <group ns="robot_2">
     <include file="$(find multirobot_orca)/launch/robot.launch"> 
-      <arg name="init_pose" value="-x -4 -y -2 -z 0 -Y 0" />     
+      <arg name="init_pose" value="-x -4 -y -2.5 -z 0 -Y 0" />     
       <arg name="robot_name" value="robot_2" />
     </include>
     <!-- <node pkg="fake_localization" type="fake_localization" name="fake_localization" respawn="false" output="screen">
@@ -93,7 +93,7 @@
           <arg name="scan_topic" value="/robot_2/base_scan" />
           <arg name="use_map_topic" value="true" /> 
           <arg name="initial_pose_x" value="-4.0" />
-          <arg name="initial_pose_y" value="1.0" />
+          <arg name="initial_pose_y" value="0.5" />
           <arg name="initial_pose_a" value="0" />
           <arg name="global_frame_id" value="/map" />
     </include>  
@@ -103,6 +103,9 @@
       <arg name="controlled" value="true"/>
     </include> 
     <node pkg="collvoid_controller" type="controller_robots.py" name="controller_robots" /> 
+
+    <!-- <node pkg ="multirobot_orca" name = "formation_control_new1"  type = "formation_control_new1"  output = "screen" args="" /> -->
+
   </group>    
 
 </launch>
