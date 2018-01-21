@@ -351,14 +351,15 @@ void formation_control::follower1_update()
         */
 
         // Controller 3 ( Dynamic feedback linearization)
-        /*
-        u1_robot1         =  robot0_xdotdot + kp1*(goal_x_robot1 - robot1_x) + kd1*(robot0_xdot - robot1_xdot);
-        u2_robot1         =  robot0_ydotdot + kp2*(goal_y_robot1 - robot1_y) + kd2*(robot0_ydot - robot1_ydot);
-        eta_r1_dot               =  u1_robot1*cos(robot1_yaw)  + u2_robot1*sin(robot1_yaw) ;
-        eta_r1                   =  eta_r1 + eta_r1_dot*0.05 ; //integral(eta_r1_dot,eta_r1_dot_prev, elapsed) ;
+        
+        u1_robot1            =  robot0_xdotdot + kp1*(goal_x_robot1 - robot1_x) + kd1*(robot0_xdot - robot1_xdot);
+        u2_robot1            =  robot0_ydotdot + kp2*(goal_y_robot1 - robot1_y) + kd2*(robot0_ydot - robot1_ydot);
+        eta_r1_dot           =  u1_robot1*cos(robot1_yaw)  + u2_robot1*sin(robot1_yaw) ;
+        eta_r1               =  eta_r1 + eta_r1_dot*0.05 ; //integral(eta_r1_dot,eta_r1_dot_prev, elapsed) ;
+        eta_r1               =  max(eta_r1,0.1) ;
         vel_msg_f1.linear.x  =  eta_r1 ; 
-        vel_msg_f1.angular.z =  0 ; //(vt2_r1*cos(robot1_yaw) - vt1_r1*sin(robot1_yaw))/eta_r1 ; 
-        */                                            ;                                              
+        vel_msg_f1.angular.z =  (u2_robot1*cos(robot1_yaw) - u1_robot1*sin(robot1_yaw))/eta_r1 ; 
+                                                                                                
     }
     else 
     {   
@@ -407,14 +408,15 @@ void formation_control::follower2_update()
         */
 
         // Controller 3 (Dynamic feedback linearization)
-        /*
-        u1_robot2         =  robot0_xdotdot + kp1*(goal_x_robot2 - robot2_x) + kd1*(robot0_xdot - robot2_xdot);
-        u2_robot2         =  robot0_ydotdot + kp2*(goal_y_robot2 - robot2_y) + kd2*(robot0_ydot - robot2_ydot);
-        eta_r2_dot        =  u1_robot2*cos(robot2_yaw)  + u2_robot2*sin(robot2_yaw) ;
-        eta_r2            =  eta_r2 + eta_r2_dot*0.05 ; 
-        vel_msg_f2.linear.x = eta_r2 ;
-        vel_msg_f2.angular.z = 0 ;                                              
-        */
+        
+        u1_robot2            =  robot0_xdotdot + kp1*(goal_x_robot2 - robot2_x) + kd1*(robot0_xdot - robot2_xdot);
+        u2_robot2            =  robot0_ydotdot + kp2*(goal_y_robot2 - robot2_y) + kd2*(robot0_ydot - robot2_ydot);
+        eta_r2_dot           =  u1_robot2*cos(robot2_yaw)  + u2_robot2*sin(robot2_yaw) ;
+        eta_r2               =  eta_r2 + eta_r2_dot*0.05 ;
+        eta_r2               =  max(eta_r2, 0.1) ;
+        vel_msg_f2.linear.x  =  eta_r2 ;
+        vel_msg_f2.angular.z =  (u2_robot2*cos(robot2_yaw) - u1_robot2*sin(robot2_yaw))/eta_r2  ;                                              
+        
     }
     else 
     {
