@@ -21,6 +21,8 @@
 #include "nav_msgs/MapMetaData.h"
 #include <sensor_msgs/Joy.h>
 
+#include <math.h> 
+
 using namespace std ;
 
 /*
@@ -40,6 +42,7 @@ public:
     formation_control()    ;
     void spin()            ;
     int signum(double val) ;
+    double time ;
 private: 
     ros::NodeHandle nh ;
     ros::Publisher cmd_vel_pub_follower1 ;
@@ -74,6 +77,7 @@ private:
     double robot0_ydotdot ;
     double robot0_yaw ;
     double robot0_vx  ;
+    double robot0_wx ;
     double robot0_omega ;
 
     double robot1_x ;
@@ -84,6 +88,7 @@ private:
     double robot1_ydotdot ;
     double robot1_yaw ;
     double robot1_vx ;
+    double robot1_wx ;
 
     double robot2_x ;
     double robot2_y ;
@@ -93,6 +98,7 @@ private:
     double robot2_ydotdot ;
     double robot2_yaw ;
     double robot2_vx ;
+    double robot2_wx ;
 
     double error_dist_prev ;
     double error_dist ;
@@ -109,6 +115,7 @@ private:
     double omega_n_robot1,omega_n_robot2  ;
     double k1,k2,k3 ;
     double e1_robot1,e2_robot1,e3_robot1,e1_robot2,e2_robot2,e3_robot2 ;
+    double e1_dot_robot1, e2_dot_robot1, e3_dot_robot1, e1_dot_robot2, e2_dot_robot2, e3_dot_robot2 ;
     double vt1_r1, vt2_r1, vt1_r2, vt2_r2 ;
 
     double k_s ;
@@ -145,6 +152,29 @@ private:
 
     double k1_r1,k2_r1,k3_r1 ;
     double k1_r2,k2_r2,k3_r2 ;
+
+    double rho_r1, gamma_r1, tilda_r1 ;
+    double rho_r2, gamma_r2, tilda_r2 ;
+    double k1_p, k2_p, k3_p ;
+
+    double k1_5, k2_5, k3_5, k0_5 ; 
+
+    // Chained form
+    double X0_1 ;
+    double X0_2 ; 
+    double X0_3 ;
+    double X2_1 ;
+    double X2_2 ;
+    double X2_3 ;
+    double X2_1e ;
+    double X2_2e ;
+    double X2_3e ;
+    double u0_1 ;
+    double u0_2 ;
+    double u2_1 ;
+    double u2_2 ;
+    double k1_chained ;
+    double k2_chained ;
 };
 
 formation_control::formation_control()
@@ -165,6 +195,7 @@ formation_control::formation_control()
 void formation_control::init_variables()
 {
     rate = 20 ;
+    time = 0 ;
 
     SWARM_DIST = 1 ;
     SWARM_ANG = 0.785 + 1.57 ;
@@ -242,11 +273,36 @@ void formation_control::init_variables()
 
     kp1 = 1 ;
     kp2 = 1 ;
-    kd1 = 1 ;
-    kd2 = 1 ;
+    kd1 = 3 ;
+    kd2 = 3 ;
 
     k1_r1 = 1 ; k2_r1 = 1 ; k3_r1 = 1 ;
     k1_r2 = 1 ; k2_r2 = 1 ; k3_r2 = 1 ;
+
+    eta_r1 = 0.1 ;
+    eta_r2 = 0.1 ;
+
+    // Posture stabilization
+    rho_r1 = 0 ;
+    gamma_r1 = 0 ;
+    tilda_r1 = 0 ;
+    rho_r2 = 0 ;
+    gamma_r2 = 0 ;
+    tilda_r2 = 0 ;
+    k1_p = 1 ;
+    k2_p = 1 ;
+    k3_p = 1 ;
+
+    // 
+    k0_5 = 1 ;
+    k1_5 = 1 ;
+    k2_5 = 1 ;
+
+    // Chained form
+    k1_chained = 0.5 ;
+    k2_chained = 2 ;
+
+
 }
 
 int formation_control::signum(double val)
@@ -278,6 +334,7 @@ void formation_control::formation_callback(const collvoid_msgs::PoseTwistWithCov
         m_robot0.getRPY(roll, pitch, yaw);
         robot0_yaw = yaw ;
         robot0_vx = data->twist.twist.linear.x ;
+        robot0_wx = data->twist.twist.angular.z ;
         robot0_xdot = robot0_vx*cos(robot0_yaw) ;
         robot0_ydot = robot0_vx*sin(robot0_yaw) ;
     }
@@ -292,6 +349,7 @@ void formation_control::formation_callback(const collvoid_msgs::PoseTwistWithCov
         m_robot1.getRPY(roll, pitch, yaw);
         robot1_yaw = yaw ;
         robot1_vx = data->twist.twist.linear.x ;
+        robot1_wx = data->twist.twist.angular.z ;
         robot1_xdot = robot1_vx*cos(robot1_yaw) ;
         robot1_ydot = robot1_vx*sin(robot1_yaw) ;
     }
@@ -306,6 +364,7 @@ void formation_control::formation_callback(const collvoid_msgs::PoseTwistWithCov
         m_robot2.getRPY(roll, pitch, yaw);
         robot2_yaw = yaw ;
         robot2_vx = data->twist.twist.linear.x ;
+        robot2_wx = data->twist.twist.angular.z ;
         robot2_xdot = robot2_vx*cos(robot2_yaw) ;
         robot2_ydot = robot2_vx*sin(robot2_yaw) ;
     }
@@ -322,17 +381,21 @@ void formation_control::follower1_update()
 
     goal_x_robot1 = robot0_x + SWARM_DIST*cos(FORMATION_ANG_robot1) ;
     goal_y_robot1 = robot0_y + SWARM_DIST*sin(FORMATION_ANG_robot1) ;
+
+    omega_n_robot1           =  sqrt(pow(robot0_omega,2) + g*pow(robot0_vx,2)) ;
+           
+    e1_robot1                =  cos(robot1_yaw)*(goal_x_robot1-robot1_x) + sin(robot1_yaw)*(goal_y_robot1-robot1_y) ; 
+    e2_robot1                = -sin(robot1_yaw)*(goal_x_robot1-robot1_x) + cos(robot1_yaw)*(goal_y_robot1-robot1_y) ; 
+    e3_robot1                =  robot0_yaw - robot1_yaw  ;
+
+    // Controller 4 (posture stabilization)
+    rho_r1   = sqrt(pow(robot0_x - robot1_x,2) + pow(robot0_y-robot1_y,2)) ;
+    gamma_r1 = M_PI + atan2((robot0_y - robot1_y),(robot0_x - robot1_x)) - robot0_yaw ;
+    tilda_r1 = gamma_r1 + robot0_yaw ;
         
-    if (abs(robot0_vx) > 0.05) 
+    if (abs(robot0_vx) > 0.01) 
     {
         ROS_INFO_STREAM("Robot_1: Controller TYPE ONE");
-
-        omega_n_robot1           =  sqrt(pow(robot0_omega,2) + g*pow(robot0_vx,2)) ;
-           
-        e1_robot1                =  cos(robot1_yaw)*(goal_x_robot1-robot1_x) + sin(robot1_yaw)*(goal_y_robot1-robot1_y) ; 
-        e2_robot1                = -sin(robot1_yaw)*(goal_x_robot1-robot1_x) + cos(robot1_yaw)*(goal_y_robot1-robot1_y) ; 
-        e3_robot1                =  robot0_yaw - robot1_yaw  ;
-
 
         // Controller 2 ( Linearized Controller)
         /*
@@ -351,18 +414,22 @@ void formation_control::follower1_update()
         */
 
         // Controller 3 ( Dynamic feedback linearization)
-        
+        /*
         u1_robot1            =  robot0_xdotdot + kp1*(goal_x_robot1 - robot1_x) + kd1*(robot0_xdot - robot1_xdot);
         u2_robot1            =  robot0_ydotdot + kp2*(goal_y_robot1 - robot1_y) + kd2*(robot0_ydot - robot1_ydot);
         eta_r1_dot           =  u1_robot1*cos(robot1_yaw)  + u2_robot1*sin(robot1_yaw) ;
-        eta_r1               =  eta_r1 + eta_r1_dot*0.05 ; //integral(eta_r1_dot,eta_r1_dot_prev, elapsed) ;
+        eta_r1               =  eta_r1 + eta_r1_dot*0.05 ; 
         eta_r1               =  max(eta_r1,0.1) ;
         vel_msg_f1.linear.x  =  eta_r1 ; 
         vel_msg_f1.angular.z =  (u2_robot1*cos(robot1_yaw) - u1_robot1*sin(robot1_yaw))/eta_r1 ; 
-                                                                                                
+        */                                                                                        
     }
     else 
-    {   
+    {
+        // Controller 4 (Posture stabilization)
+        //vel_msg_f1 = k1_p*rho_r1*cos(gamma_r1) ;
+        //vel_msg_f1 = k2_p*gamma_r1 + k1_p*sin(gamma_r1)*cos(gamma_r1)*(gamma_r1 + k3_p*tilda_r1)/gamma_r1 ; 
+
         vel_msg_f1.linear.x  = 0 ; 
         vel_msg_f1.angular.z = 0 ; 
     }
@@ -380,16 +447,27 @@ void formation_control::follower2_update()
 
     goal_x_robot2 = robot0_x + SWARM_DIST*cos(FORMATION_ANG_robot2) ;
     goal_y_robot2 = robot0_y + SWARM_DIST*sin(FORMATION_ANG_robot2) ;
-      
+
+    omega_n_robot2           =  sqrt(pow(robot0_omega,2) + g*pow(robot0_vx,2)) ;
+           
+    //e1_robot2                =  cos(robot2_yaw)*(goal_x_robot2-robot2_x) + sin(robot2_yaw)*(goal_y_robot2-robot2_y) ; 
+    //e2_robot2                = -sin(robot2_yaw)*(goal_x_robot2-robot2_x) + cos(robot2_yaw)*(goal_y_robot2-robot2_y) ; 
+    //e3_robot2                =  robot0_yaw - robot2_yaw  ;
+
+    e1_robot2                =  cos(robot2_yaw)*(robot2_x - goal_x_robot2) + sin(robot2_yaw)*(robot2_y - goal_y_robot2) ; 
+    e2_robot2                = -sin(robot2_yaw)*(robot2_x - goal_x_robot2) + cos(robot2_yaw)*(robot2_y - goal_y_robot2) ; 
+    e3_robot2                =  robot2_yaw - robot0_yaw ;
+ 
+    
+
+    // Controller 4 (posture stabilization)
+    rho_r2   = sqrt(pow(robot0_x - robot2_x,2) + pow(robot0_y-robot2_y,2)) ;
+    gamma_r2 = M_PI + atan2((robot0_y - robot2_y),(robot0_x - robot2_x)) - robot0_yaw ;
+    tilda_r2 = atan2((robot0_y - robot2_y),(robot0_x - robot2_x)) ; //gamma_r2 + robot0_yaw ;
+
     if (abs(robot0_vx) > 0.01) 
     {
         ROS_INFO_STREAM("Controller TYPE ONE");
-
-        omega_n_robot2           =  sqrt(pow(robot0_omega,2) + g*pow(robot0_vx,2)) ;
-           
-        e1_robot2                =  cos(robot2_yaw)*(goal_x_robot2-robot2_x) + sin(robot2_yaw)*(goal_y_robot2-robot2_y) ; 
-        e2_robot2                = -sin(robot2_yaw)*(goal_x_robot2-robot2_x) + cos(robot2_yaw)*(goal_y_robot2-robot2_y) ; 
-        e3_robot2                =  robot0_yaw - robot2_yaw  ; 
 
         // Controller 1 (Linearized controller)
         /*
@@ -401,27 +479,62 @@ void formation_control::follower2_update()
 
         // Controller 2( Lyapunov based controller)
         /*
-        vt1_r2                   = -k1_r2*e1_robot2 ;
-        vt2_r2                   = -3*robot0_vx*(sin(e3_robot2)/e3_robot2)*e2_robot2 - k2_r2*e3_robot2 ;
-        vel_msg_f2.linear.x  = robot0_vx*cos(e3_robot2) - vt1_r2 ;
-        vel_msg_f2.angular.z = robot0_omega - vt2_r2 ;
+        vt1_r2                 = -k1_r2*e1_robot2 ;
+        vt2_r2                 = -3*robot0_vx*(sin(e3_robot2)/e3_robot2)*e2_robot2 - k2_r2*e3_robot2 ;
+        vel_msg_f2.linear.x    = robot0_vx*cos(e3_robot2) - vt1_r2 ;
+        vel_msg_f2.angular.z   = robot0_omega - vt2_r2 ;
         */
 
         // Controller 3 (Dynamic feedback linearization)
-        
+        /*
         u1_robot2            =  robot0_xdotdot + kp1*(goal_x_robot2 - robot2_x) + kd1*(robot0_xdot - robot2_xdot);
         u2_robot2            =  robot0_ydotdot + kp2*(goal_y_robot2 - robot2_y) + kd2*(robot0_ydot - robot2_ydot);
         eta_r2_dot           =  u1_robot2*cos(robot2_yaw)  + u2_robot2*sin(robot2_yaw) ;
         eta_r2               =  eta_r2 + eta_r2_dot*0.05 ;
         eta_r2               =  max(eta_r2, 0.1) ;
         vel_msg_f2.linear.x  =  eta_r2 ;
-        vel_msg_f2.angular.z =  (u2_robot2*cos(robot2_yaw) - u1_robot2*sin(robot2_yaw))/eta_r2  ;                                              
-        
+        vel_msg_f2.angular.z =  (u2_robot2*cos(robot2_yaw) - u1_robot2*sin(robot2_yaw))/eta_r2  ;  
+        */  
+
+        // Controller 5 (Simultaneous tracking and stabilization)
+        /*
+        double h = 8*tanh(pow(e1_robot2,2) + pow(e2_robot2,2))*sin(time) ;
+        double p = 0 ;
+        double alpha = p*h ;
+        e1_dot_robot2 =  robot2_wx*e2_robot2 + robot2_vx - robot0_vx*cos(e3_robot2) ; 
+        e2_dot_robot2 = -robot2_wx*e1_robot2 + robot0_vx*(sin(e3_robot2)-sin(alpha)) + robot0_vx*sin(alpha) ;
+        double alpha_dot = 8*tanh(pow(e1_robot2,2) + pow(e2_robot2,2))*cos(time) + 8*(1/pow(cosh(pow(e1_robot2,2) + pow(e2_robot2,2)),2))*sin(time)*(2*e1_robot2*e1_dot_robot2 + 2*e2_robot2*e2_dot_robot2) ;
+        double f1 = (sin(e3_robot2) - sin(alpha))/(e3_robot2 - alpha) ;
+        e3_dot_robot2 =  robot2_wx - robot0_wx - alpha_dot ;
+        vel_msg_f2.linear.x = (-k1_5*e1_robot2 + robot0_vx*cos(e3_robot2)) ;
+        vel_msg_f2.angular.z = -k2_5*(e3_robot2 - alpha) + robot0_wx - k0_5*robot0_vx*e2_robot2*f1 + alpha_dot ;
+        */
+
+        // Controller 6 (Lyapunov approach using chained form)
+        X0_1 = robot0_yaw ;
+        X0_2 = goal_x_robot2*cos(robot0_yaw) + goal_y_robot2*sin(robot0_yaw) ;
+        X0_3 = goal_x_robot2*sin(robot0_yaw) - goal_y_robot2*cos(robot0_yaw) ;
+        u0_1 = robot0_wx ;
+        u0_2 = robot0_vx - X0_3*robot0_wx ;
+        X2_1  = robot2_yaw ;
+        X2_2  = robot2_x*cos(robot2_yaw) + robot2_y*sin(robot2_yaw) ;
+        X2_3  = robot2_x*sin(robot2_yaw) - robot2_y*cos(robot2_yaw) ;
+        X2_1e = X2_1 - X0_1 ;
+        X2_2e = X2_2 - X0_2 ;
+        X2_3e = X2_3 - X0_3 ;
+        u2_1 = u0_1 - k1_chained*(X2_1e + X2_2*X2_3e) ;
+        u2_2 = -k2_chained*X2_2e + u0_2 - X2_3e*u0_1 ;
+        vel_msg_f2.linear.x = u2_2 + u2_1*X2_3 ;
+        vel_msg_f2.angular.z = u2_1 ;
     }
     else 
     {
+        // Controller 4 (Posture stabilization)
+        //vel_msg_f2.linear.x  = k1_p*rho_r2*cos(gamma_r2) ;
+        //vel_msg_f2.angular.z = k2_p*gamma_r2 + k1_p*sin(gamma_r2)*cos(gamma_r2)*(gamma_r2 + k3_p*tilda_r2)/gamma_r2 ;
+
         vel_msg_f2.linear.x  = 0 ; 
-        vel_msg_f2.angular.x =  0 ; 
+        vel_msg_f2.angular.z =  0 ; 
     }
     cmd_vel_pub_follower2.publish(vel_msg_f2) ;
 }
@@ -434,6 +547,7 @@ void formation_control::update()
     if ( now > t_next) 
     {
         elapsed = now.toSec() - then.toSec(); 
+        time = time + elapsed ;
         ROS_INFO_STREAM("elapsed =" << elapsed);
         ROS_INFO_STREAM("now =" << now.toSec());
         ROS_INFO_STREAM("then =" << then.toSec());
@@ -453,12 +567,12 @@ void formation_control::update()
         robot0_xdot_prev = robot0_xdot ;
         robot0_ydot_prev = robot0_ydot ;
         
-        debug_msg.linear.x =  eta_r1          ;
-        debug_msg.linear.y =  eta_r1_dot         ;
-        debug_msg.linear.z =  elapsed              ;
+        debug_msg.linear.x =  X2_1e        ;
+        debug_msg.linear.y =  X2_2e         ;
+        debug_msg.linear.z =  X2_3e              ;
         debug_msg.angular.x = 0               ;
-        debug_msg.angular.y = u1_robot1                   ;
-        debug_msg.angular.z = u2_robot1                   ;
+        debug_msg.angular.y = 0                   ;
+        debug_msg.angular.z = 0                  ;
         debug_pub.publish(debug_msg)                   ;
        
         /*
