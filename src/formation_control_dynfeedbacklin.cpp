@@ -163,14 +163,22 @@ private:
     double X0_1 ;
     double X0_2 ; 
     double X0_3 ;
+    double X1_1 ;
+    double X1_2 ;
+    double X1_3 ;
     double X2_1 ;
     double X2_2 ;
     double X2_3 ;
+    double X1_1e ;
+    double X1_2e ;
+    double X1_3e ;
     double X2_1e ;
     double X2_2e ;
     double X2_3e ;
     double u0_1 ;
     double u0_2 ;
+    double u1_1 ;
+    double u1_2 ;
     double u2_1 ;
     double u2_2 ;
     double k1_chained ;
@@ -337,6 +345,12 @@ void formation_control::formation_callback(const collvoid_msgs::PoseTwistWithCov
         robot0_wx = data->twist.twist.angular.z ;
         robot0_xdot = robot0_vx*cos(robot0_yaw) ;
         robot0_ydot = robot0_vx*sin(robot0_yaw) ;
+        // Chained form 
+        X0_1 = robot0_yaw ;
+        X0_2 = goal_x_robot2*cos(robot0_yaw) + goal_y_robot2*sin(robot0_yaw) ;
+        X0_3 = goal_x_robot2*sin(robot0_yaw) - goal_y_robot2*cos(robot0_yaw) ;
+        u0_1 = robot0_wx ;
+        u0_2 = robot0_vx - X0_3*robot0_wx ;
     }
 
     if (data->robot_id == "robot_1")
@@ -352,6 +366,10 @@ void formation_control::formation_callback(const collvoid_msgs::PoseTwistWithCov
         robot1_wx = data->twist.twist.angular.z ;
         robot1_xdot = robot1_vx*cos(robot1_yaw) ;
         robot1_ydot = robot1_vx*sin(robot1_yaw) ;
+        X1_1  = robot1_yaw ;
+        X1_2  = robot1_x*cos(robot1_yaw) + robot1_y*sin(robot1_yaw) ;
+        X1_3  = robot1_x*sin(robot1_yaw) - robot1_y*cos(robot1_yaw) ;
+
     }
 
     if (data->robot_id == "robot_2")
@@ -367,6 +385,10 @@ void formation_control::formation_callback(const collvoid_msgs::PoseTwistWithCov
         robot2_wx = data->twist.twist.angular.z ;
         robot2_xdot = robot2_vx*cos(robot2_yaw) ;
         robot2_ydot = robot2_vx*sin(robot2_yaw) ;
+        // Chained form
+        X2_1  = robot2_yaw ;
+        X2_2  = robot2_x*cos(robot2_yaw) + robot2_y*sin(robot2_yaw) ;
+        X2_3  = robot2_x*sin(robot2_yaw) - robot2_y*cos(robot2_yaw) ;
     }
 }
 
@@ -422,7 +444,16 @@ void formation_control::follower1_update()
         eta_r1               =  max(eta_r1,0.1) ;
         vel_msg_f1.linear.x  =  eta_r1 ; 
         vel_msg_f1.angular.z =  (u2_robot1*cos(robot1_yaw) - u1_robot1*sin(robot1_yaw))/eta_r1 ; 
-        */                                                                                        
+        */
+
+        // Controller 6 (Lyapunov approach using chained form)
+        X1_1e = X1_1 - X0_1 ;
+        X1_2e = X1_2 - X0_2 ;
+        X1_3e = X1_3 - X0_3 ;
+        u1_1 = u0_1 - k1_chained*(X1_1e + X1_2*X1_3e) ;
+        u1_2 = -k2_chained*X1_2e + u0_2 - X1_3e*u0_1 ;
+        vel_msg_f1.linear.x = u2_2 + u2_1*X2_3 ;
+        vel_msg_f1.angular.z = u2_1 ;                                                                                        
     }
     else 
     {
@@ -450,15 +481,9 @@ void formation_control::follower2_update()
 
     omega_n_robot2           =  sqrt(pow(robot0_omega,2) + g*pow(robot0_vx,2)) ;
            
-    //e1_robot2                =  cos(robot2_yaw)*(goal_x_robot2-robot2_x) + sin(robot2_yaw)*(goal_y_robot2-robot2_y) ; 
-    //e2_robot2                = -sin(robot2_yaw)*(goal_x_robot2-robot2_x) + cos(robot2_yaw)*(goal_y_robot2-robot2_y) ; 
-    //e3_robot2                =  robot0_yaw - robot2_yaw  ;
-
-    e1_robot2                =  cos(robot2_yaw)*(robot2_x - goal_x_robot2) + sin(robot2_yaw)*(robot2_y - goal_y_robot2) ; 
-    e2_robot2                = -sin(robot2_yaw)*(robot2_x - goal_x_robot2) + cos(robot2_yaw)*(robot2_y - goal_y_robot2) ; 
-    e3_robot2                =  robot2_yaw - robot0_yaw ;
- 
-    
+    e1_robot2                =  cos(robot2_yaw)*(goal_x_robot2-robot2_x) + sin(robot2_yaw)*(goal_y_robot2-robot2_y) ; 
+    e2_robot2                = -sin(robot2_yaw)*(goal_x_robot2-robot2_x) + cos(robot2_yaw)*(goal_y_robot2-robot2_y) ; 
+    e3_robot2                =  robot0_yaw - robot2_yaw  ;
 
     // Controller 4 (posture stabilization)
     rho_r2   = sqrt(pow(robot0_x - robot2_x,2) + pow(robot0_y-robot2_y,2)) ;
@@ -511,14 +536,6 @@ void formation_control::follower2_update()
         */
 
         // Controller 6 (Lyapunov approach using chained form)
-        X0_1 = robot0_yaw ;
-        X0_2 = goal_x_robot2*cos(robot0_yaw) + goal_y_robot2*sin(robot0_yaw) ;
-        X0_3 = goal_x_robot2*sin(robot0_yaw) - goal_y_robot2*cos(robot0_yaw) ;
-        u0_1 = robot0_wx ;
-        u0_2 = robot0_vx - X0_3*robot0_wx ;
-        X2_1  = robot2_yaw ;
-        X2_2  = robot2_x*cos(robot2_yaw) + robot2_y*sin(robot2_yaw) ;
-        X2_3  = robot2_x*sin(robot2_yaw) - robot2_y*cos(robot2_yaw) ;
         X2_1e = X2_1 - X0_1 ;
         X2_2e = X2_2 - X0_2 ;
         X2_3e = X2_3 - X0_3 ;
