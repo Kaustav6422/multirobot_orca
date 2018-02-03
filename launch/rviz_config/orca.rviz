@@ -5,9 +5,9 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /PoseArray_Robot_21
-        - /LaserScan1
+        - /Status1
         - /TF1/Frames1
+        - /Marker_robot1
       Splitter Ratio: 0.5
     Tree Height: 420
   - Class: rviz/Selection
@@ -28,7 +28,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
@@ -396,12 +396,12 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 999999
       Min Color: 0; 0; 0
-      Min Intensity: 999999
+      Min Intensity: 8.40779079e-45
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
@@ -413,7 +413,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz/TF
       Enabled: true
       Frame Timeout: 15
@@ -422,113 +422,113 @@ Visualization Manager:
         map:
           Value: true
         robot_0/base_camera_link:
-          Value: false
+          Value: true
         robot_0/base_camera_stand:
-          Value: false
+          Value: true
         robot_0/base_footprint:
-          Value: false
+          Value: true
         robot_0/base_laser_link:
-          Value: false
+          Value: true
         robot_0/base_link:
           Value: true
         robot_0/camera_depth_frame:
-          Value: false
+          Value: true
         robot_0/camera_depth_optical_frame:
-          Value: false
+          Value: true
         robot_0/camera_rgb_frame:
-          Value: false
+          Value: true
         robot_0/camera_rgb_optical_frame:
-          Value: false
+          Value: true
         robot_0/caster_back_link:
-          Value: false
+          Value: true
         robot_0/caster_front_link:
-          Value: false
+          Value: true
         robot_0/cliff_sensor_front_link:
-          Value: false
+          Value: true
         robot_0/cliff_sensor_left_link:
-          Value: false
+          Value: true
         robot_0/cliff_sensor_right_link:
-          Value: false
+          Value: true
         robot_0/gyro_link:
-          Value: false
+          Value: true
         robot_0/odom:
           Value: true
         robot_0/wheel_left_link:
-          Value: false
+          Value: true
         robot_0/wheel_right_link:
-          Value: false
+          Value: true
         robot_1/base_camera_link:
-          Value: false
+          Value: true
         robot_1/base_camera_stand:
-          Value: false
+          Value: true
         robot_1/base_footprint:
-          Value: false
+          Value: true
         robot_1/base_laser_link:
-          Value: false
+          Value: true
         robot_1/base_link:
           Value: true
         robot_1/camera_depth_frame:
-          Value: false
+          Value: true
         robot_1/camera_depth_optical_frame:
-          Value: false
+          Value: true
         robot_1/camera_rgb_frame:
-          Value: false
+          Value: true
         robot_1/camera_rgb_optical_frame:
-          Value: false
+          Value: true
         robot_1/caster_back_link:
-          Value: false
+          Value: true
         robot_1/caster_front_link:
-          Value: false
+          Value: true
         robot_1/cliff_sensor_front_link:
-          Value: false
+          Value: true
         robot_1/cliff_sensor_left_link:
-          Value: false
+          Value: true
         robot_1/cliff_sensor_right_link:
-          Value: false
+          Value: true
         robot_1/gyro_link:
-          Value: false
+          Value: true
         robot_1/odom:
           Value: true
         robot_1/wheel_left_link:
-          Value: false
+          Value: true
         robot_1/wheel_right_link:
-          Value: false
+          Value: true
         robot_2/base_camera_link:
-          Value: false
+          Value: true
         robot_2/base_camera_stand:
-          Value: false
+          Value: true
         robot_2/base_footprint:
-          Value: false
+          Value: true
         robot_2/base_laser_link:
-          Value: false
+          Value: true
         robot_2/base_link:
           Value: true
         robot_2/camera_depth_frame:
-          Value: false
+          Value: true
         robot_2/camera_depth_optical_frame:
-          Value: false
+          Value: true
         robot_2/camera_rgb_frame:
-          Value: false
+          Value: true
         robot_2/camera_rgb_optical_frame:
-          Value: false
+          Value: true
         robot_2/caster_back_link:
-          Value: false
+          Value: true
         robot_2/caster_front_link:
-          Value: false
+          Value: true
         robot_2/cliff_sensor_front_link:
-          Value: false
+          Value: true
         robot_2/cliff_sensor_left_link:
-          Value: false
+          Value: true
         robot_2/cliff_sensor_right_link:
-          Value: false
+          Value: true
         robot_2/gyro_link:
-          Value: false
+          Value: true
         robot_2/odom:
           Value: true
         robot_2/wheel_left_link:
-          Value: false
+          Value: true
         robot_2/wheel_right_link:
-          Value: false
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -681,6 +681,22 @@ Visualization Manager:
       Topic: /robot_0/move_base/NavfnROS/plan
       Unreliable: false
       Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /trajectory_ref
+      Name: Marker_reference
+      Namespaces:
+        spheres: true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /trajectory_robot
+      Name: Marker_robot
+      Namespaces:
+        spheres: true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -705,7 +721,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 13.5853949
+      Distance: 11.2830372
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -720,10 +736,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.844796836
+      Pitch: 0.519797027
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.71359253
+      Yaw: 0.178592667
     Saved: ~
 Window Geometry:
   Displays:

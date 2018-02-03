@@ -172,6 +172,7 @@ add_executable(costmap_node src/costmap_node.cpp)
 add_executable(formation_control_new1 src/formation_control_new1.cpp)
 add_executable(formation_control_new2 src/formation_control_new2.cpp)
 add_executable(formation_control_dynfeedbacklin src/formation_control_dynfeedbacklin.cpp)
+add_executable(tracking_dynamic src/tracking_dynamic.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -203,6 +204,7 @@ target_link_libraries(costmap_node ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 target_link_libraries(formation_control_new1 ${catkin_LIBRARIES})
 target_link_libraries(formation_control_new2 ${catkin_LIBRARIES})
 target_link_libraries(formation_control_dynfeedbacklin ${catkin_LIBRARIES}) 
+target_link_libraries(tracking_dynamic ${catkin_LIBRARIES})
 
 
  

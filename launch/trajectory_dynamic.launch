@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<launch>
+
+     <param name="/use_sim_time" value="true"/> 
+
+     <node name="map_server" pkg="map_server" type="map_server" args="$(find multirobot_orca)/map.yaml" >
+          <param name="frame_id" value="/map" />
+     </node>
+
+     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find multirobot_orca)/launch/rviz_config/orca.rviz" output="screen" />
+
+     <node pkg ="multirobot_orca" name = "tracking_dynamic"  type = "tracking_dynamic"  output = "screen" args="" /> 
+
+</launch>

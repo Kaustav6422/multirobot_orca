@@ -45,25 +45,21 @@ public:
     int signum(double val) ;
     double time ;
     void visualization() ;
-    
 private: 
     ros::NodeHandle nh ;
     ros::Publisher cmd_vel_pub_follower1 ;
     ros::Publisher cmd_vel_pub_follower2 ;
     ros::Publisher cmd_vel_leader_pub ;
     ros::Publisher debug_pub ;
-    ros::Publisher marker_ref_pub ;
-    ros::Publisher marker_robot_pub ;
+    ros::Publisher marker_pub ;
     ros::Subscriber position_share_sub ;
     ros::Subscriber joy_sub ;
     void formation_callback(const collvoid_msgs::PoseTwistWithCovariance::ConstPtr& data) ;
     void joystick_callback(const sensor_msgs::Joy::ConstPtr& joy) ;
     void init_variables()  ;
     void update()          ;
-    void update_dynamic() ;
     void follower1_update() ;
     void follower2_update() ; 
-    
 
     geometry_msgs::Twist debug_msg      ;
     geometry_msgs::Twist vel_msg_f1     ;
@@ -149,13 +145,13 @@ private:
 
     double eta_r1 ;
     double eta_r1_dot ;
-    //double u1_robot1 ;
-    //double u2_robot1 ;
+    double u1_robot1 ;
+    double u2_robot1 ;
 
     double eta_r2 ;
     double eta_r2_dot ;
-    //double u1_robot2 ;
-    //double u2_robot2 ;
+    double u1_robot2 ;
+    double u2_robot2 ;
 
     double k1_r1,k2_r1,k3_r1 ;
     double k1_r2,k2_r2,k3_r2 ;
@@ -167,54 +163,29 @@ private:
     double k1_5, k2_5, k3_5, k0_5 ; 
 
     // Chained form
-    double X1_robot0_r1 ;
-    double X2_robot0_r1 ; 
-    double X3_robot0_r1 ;
-    double X1_robot0_r2 ;
-    double X2_robot0_r2 ; 
-    double X3_robot0_r2 ;
-    double u1_robot0_r1 ;
-    double u2_robot0_r1 ;
-    double u1_robot0_r2 ;
-    double u2_robot0_r2 ;
-    double X1_robot1 ;
-    double X2_robot1 ;
-    double X3_robot1 ;
-    double X1_robot2 ;
-    double X2_robot2 ;
-    double X3_robot2 ;
-    double X1e_robot1 ;
-    double X2e_robot1 ;
-    double X3e_robot1 ;
-    double X1e_robot2 ;
-    double X2e_robot2 ;
-    double X3e_robot2 ;
-    double u1_robot1 ;
-    double u2_robot1 ;
-    double u1_robot2 ;
-    double u2_robot2 ;
+    double X0_1 ;
+    double X0_2 ; 
+    double X0_3 ;
+    double X1_1 ;
+    double X1_2 ;
+    double X1_3 ;
+    double X2_1 ;
+    double X2_2 ;
+    double X2_3 ;
+    double X1_1e ;
+    double X1_2e ;
+    double X1_3e ;
+    double X2_1e ;
+    double X2_2e ;
+    double X2_3e ;
+    double u0_1 ;
+    double u0_2 ;
+    double u1_1 ;
+    double u1_2 ;
+    double u2_1 ;
+    double u2_2 ;
     double k1_chained ;
     double k2_chained ;
-    double k3_chained ;
-
-    double f ;
-
-    double mass ;
-    double inertia ;
-    double F ;
-    double Tau ;
-    double x, x_p ;
-    double y, y_p ;
-    double phi, phi_p ;
-    double x_e,y_e,phi_e ;    
-    double v, v_p ;
-    double w, w_p ;
-    double vref, wref ;
-    double xref, yref, phiref ;
-    double xref_dot ,yref_dot ,phiref_dot  ;
-    double xref_ddot,yref_ddot,phiref_ddot ;
-    double vd, wd ;
-    double v_e, w_e, v_e_p, w_e_p, v_e_sum,w_e_sum ;
 };
 
 formation_control::formation_control()
@@ -225,9 +196,8 @@ formation_control::formation_control()
     cmd_vel_leader_pub    = nh.advertise<geometry_msgs::Twist>("/robot_0/mobile_base/commands/velocity",20) ;
     cmd_vel_pub_follower1 = nh.advertise<geometry_msgs::Twist>("/robot_1/mobile_base/commands/velocity",20);
     cmd_vel_pub_follower2 = nh.advertise<geometry_msgs::Twist>("/robot_2/mobile_base/commands/velocity",20);
-    debug_pub             = nh.advertise<geometry_msgs::Twist>("debug",20);  
-    marker_ref_pub        = nh.advertise<visualization_msgs::Marker>("trajectory_ref", 20);
-    marker_robot_pub      = nh.advertise<visualization_msgs::Marker>("trajectory_robot", 20) ;   
+    debug_pub             = nh.advertise<geometry_msgs::Twist>("debug",20);
+    marker_pub = n.advertise<visualization_msgs::Marker>("goal_trajectory", 20);  
 
     // Subscribe
     position_share_sub = nh.subscribe("position_share", 50, &formation_control::formation_callback, this);
@@ -236,94 +206,8 @@ formation_control::formation_control()
 
 void formation_control::visualization()
 {
-    visualization_msgs::Marker reference;
-    reference.header.frame_id= "/map";
-    reference.header.stamp= ros::Time::now();
-    reference.ns= "spheres";
-    reference.action= visualization_msgs::Marker::ADD;
-    reference.pose.orientation.w= 1.0;
-    reference.id = 0;
-    reference.type = visualization_msgs::Marker::SPHERE_LIST;
-    // POINTS markers use x and y scale for width/height respectively
-    reference.scale.x = 0.1;
-    reference.scale.y = 0.1;
-    reference.scale.z = 0.1;
-    // Points are blue
-    reference.color.b = 1.0f;
-    reference.color.a = 1.0;
-    geometry_msgs::Point ref;
-    ref.x = xref ; //goal_x_robot1 ;
-    ref.y = yref ; //goal_y_robot1 ;
-    ref.z = 0;
-    reference.points.push_back(ref);
-    marker_ref_pub.publish(reference);
-
-    visualization_msgs::Marker robot;
-    robot.header.frame_id= "/map";
-    robot.header.stamp= ros::Time::now();
-    robot.ns= "spheres";
-    robot.action= visualization_msgs::Marker::ADD;
-    robot.pose.orientation.w= 1.0;
-    robot.id = 0;
-    robot.type = visualization_msgs::Marker::SPHERE_LIST;
-    // POINTS markers use x and y scale for width/height respectively
-    robot.scale.x = 0.1;
-    robot.scale.y = 0.1;
-    robot.scale.z = 0.1;
-    // Points are red
-    robot.color.r = 1.0f;
-    robot.color.a = 1.0;
-    geometry_msgs::Point p_robot1;
-    p_robot1.x = x ; //goal_x_robot1 ;
-    p_robot1.y = y ; //goal_y_robot1 ;
-    p_robot1.z = 0;
-    robot.points.push_back(p_robot1);
-    marker_robot_pub.publish(robot) ;
-
-
-    f += 0.04;
-    
-    /*
-    visualization_msgs::Marker points, line_strip ;
-    points.header.frame_id = line_strip.header.frame_id = "/map";
-    points.header.stamp = line_strip.header.stamp = ros::Time::now();
-    points.ns = line_strip.ns = "points_and_lines";
-    points.action = line_strip.action = visualization_msgs::Marker::ADD;
-    points.pose.orientation.w = line_strip.pose.orientation.w = 1.0;
-    points.id = 0;
-    line_strip.id = 1;
-    points.type = visualization_msgs::Marker::POINTS;
-    line_strip.type = visualization_msgs::Marker::LINE_STRIP;
-    // POINTS markers use x and y scale for width/height respectively
-    points.scale.x = 0.2;
-    points.scale.y = 0.2;
-    // LINE_STRIP/LINE_LIST markers use only the x component of scale, for the line width
-    line_strip.scale.x = 0.1;
-    // Points are green
-    points.color.g = 1.0f;
-    points.color.a = 1.0;
-    // Line strip is blue
-    line_strip.color.b = 1.0;
-    line_strip.color.a = 1.0;
-    geometry_msgs::Point p_robot1;
-    p_robot1.x = goal_x_robot1 ;
-    p_robot1.y = goal_y_robot1 ;
-    p_robot1.z = 0;
-    geometry_msgs::Point p_robot2;
-    p_robot2.x = goal_x_robot2 ;
-    p_robot2.y = goal_y_robot2 ;
-    p_robot2.z = 0;
-    points.points.push_back(p_robot1);
-    points.points.push_back(p_robot2);
-    line_strip.points.push_back(p_robot1);
-    line_strip.points.push_back(p_robot2);
-    marker_pub.publish(points);
-    marker_pub.publish(line_strip);
-    f += 0.04;
-    */
 
 }
-
 
 void formation_control::init_variables()
 {
@@ -409,8 +293,8 @@ void formation_control::init_variables()
     kd1 = 3 ;
     kd2 = 3 ;
 
-    k1_r1 = 1 ; k2_r1 = 5 ; k3_r1 = 5 ;
-    k1_r2 = 1 ; k2_r2 = 5 ; k3_r2 = 5 ;
+    k1_r1 = 1 ; k2_r1 = 1 ; k3_r1 = 1 ;
+    k1_r2 = 1 ; k2_r2 = 1 ; k3_r2 = 1 ;
 
     eta_r1 = 0.1 ;
     eta_r2 = 0.1 ;
@@ -432,24 +316,10 @@ void formation_control::init_variables()
     k2_5 = 1 ;
 
     // Chained form
-    k1_chained = 0.5 ;
-    k2_chained = 0.5 ;
-    k3_chained = 1 ;
+    k1_chained = 0.2 ; // 0.5
+    k2_chained = 0.5 ; // 0.5
 
-    f = 0.0 ;
 
-    mass    = 0.1 ;
-    inertia = 0.1 ;
-    //F = 0 ;
-    //Tau = 0 ;
-    x = -1; y = 0; phi = 0 ;
-    x_p =0; y_p =0; phi_p =0;
-    x_e = 0 ; y_e = 0; phi_e = 0;
-    v = 0; w = 0; v_p =0 ; w_p= 0;
-    vref = 0 ; wref = 0 ; xref = 0; yref = 0; phiref = 0 ;
-    vd = 0 ;wd = 0 ;
-    v_e= 0; w_e =0; v_e_p =0; w_e_p =0 ;
-    v_e_sum = 0 ; w_e_sum = 0 ;
 }
 
 int formation_control::signum(double val)
@@ -484,6 +354,12 @@ void formation_control::formation_callback(const collvoid_msgs::PoseTwistWithCov
         robot0_wx = data->twist.twist.angular.z ;
         robot0_xdot = robot0_vx*cos(robot0_yaw) ;
         robot0_ydot = robot0_vx*sin(robot0_yaw) ;
+        // Chained form 
+        X0_1 = robot0_yaw ;
+        X0_2 = goal_x_robot2*cos(robot0_yaw) + goal_y_robot2*sin(robot0_yaw) ;
+        X0_3 = goal_x_robot2*sin(robot0_yaw) - goal_y_robot2*cos(robot0_yaw) ;
+        u0_1 = robot0_wx ;
+        u0_2 = robot0_vx - X0_3*robot0_wx ;
     }
 
     if (data->robot_id == "robot_1")
@@ -499,10 +375,9 @@ void formation_control::formation_callback(const collvoid_msgs::PoseTwistWithCov
         robot1_wx = data->twist.twist.angular.z ;
         robot1_xdot = robot1_vx*cos(robot1_yaw) ;
         robot1_ydot = robot1_vx*sin(robot1_yaw) ;
-        // Chained form
-        X1_robot1  = robot1_yaw ;
-        X2_robot1  = robot1_x*cos(robot1_yaw) + robot1_y*sin(robot1_yaw) ;
-        X3_robot1  = robot1_x*sin(robot1_yaw) - robot1_y*cos(robot1_yaw) ;
+        X1_1  = robot1_yaw ;
+        X1_2  = robot1_x*cos(robot1_yaw) + robot1_y*sin(robot1_yaw) ;
+        X1_3  = robot1_x*sin(robot1_yaw) - robot1_y*cos(robot1_yaw) ;
 
     }
 
@@ -520,22 +395,20 @@ void formation_control::formation_callback(const collvoid_msgs::PoseTwistWithCov
         robot2_xdot = robot2_vx*cos(robot2_yaw) ;
         robot2_ydot = robot2_vx*sin(robot2_yaw) ;
         // Chained form
-        X1_robot2  = robot2_yaw ;
-        X2_robot2  = robot2_x*cos(robot2_yaw) + robot2_y*sin(robot2_yaw) ;
-        X3_robot2  = robot2_x*sin(robot2_yaw) - robot2_y*cos(robot2_yaw) ;
+        X2_1  = robot2_yaw ;
+        X2_2  = robot2_x*cos(robot2_yaw) + robot2_y*sin(robot2_yaw) ;
+        X2_3  = robot2_x*sin(robot2_yaw) - robot2_y*cos(robot2_yaw) ;
     }
 }
 
 void formation_control::follower1_update()
 {
     FORMATION_ANG_robot1 = -(M_PI - SWARM_ANG - robot0_yaw) ;
-   
-    /*
+
     if (FORMATION_ANG_robot1 >= 2*M_PI)
         FORMATION_ANG_robot1 = FORMATION_ANG_robot1 - 2*M_PI ;
     if (FORMATION_ANG_robot1 <= 2*M_PI)
         FORMATION_ANG_robot1 = FORMATION_ANG_robot1 + 2*M_PI ; 
-    */
 
     goal_x_robot1 = robot0_x + SWARM_DIST*cos(FORMATION_ANG_robot1) ;
     goal_y_robot1 = robot0_y + SWARM_DIST*sin(FORMATION_ANG_robot1) ;
@@ -547,23 +420,12 @@ void formation_control::follower1_update()
     e3_robot1                =  robot0_yaw - robot1_yaw  ;
 
     // Controller 4 (posture stabilization)
-    /*
     rho_r1   = sqrt(pow(robot0_x - robot1_x,2) + pow(robot0_y-robot1_y,2)) ;
     gamma_r1 = M_PI + atan2((robot0_y - robot1_y),(robot0_x - robot1_x)) - robot0_yaw ;
     tilda_r1 = gamma_r1 + robot0_yaw ;
-    */
-
-    // Chained form (Leader)
-    
-    X1_robot0_r1 = robot0_yaw ;
-    X2_robot0_r1 = goal_x_robot1*cos(robot0_yaw) + goal_y_robot1*sin(robot0_yaw) ;
-    X3_robot0_r1 = goal_x_robot1*sin(robot0_yaw) - goal_y_robot1*cos(robot0_yaw) ;
-    u1_robot0_r1 = robot0_wx ;
-    u2_robot0_r1 = robot0_vx - X3_robot0_r1*u1_robot0_r1 ;
-    
-    
-    if (abs(robot0_vx) > 0.01) 
-    {
+        
+    //if (abs(robot0_vx) > 0.01) 
+    //{
         ROS_INFO_STREAM("Robot_1: Controller TYPE ONE");
 
         // Controller 2 ( Linearized Controller)
@@ -583,7 +445,7 @@ void formation_control::follower1_update()
         */
 
         // Controller 3 ( Dynamic feedback linearization)
-        
+        /*
         u1_robot1            =  robot0_xdotdot + kp1*(goal_x_robot1 - robot1_x) + kd1*(robot0_xdot - robot1_xdot);
         u2_robot1            =  robot0_ydotdot + kp2*(goal_y_robot1 - robot1_y) + kd2*(robot0_ydot - robot1_ydot);
         eta_r1_dot           =  u1_robot1*cos(robot1_yaw)  + u2_robot1*sin(robot1_yaw) ;
@@ -591,43 +453,49 @@ void formation_control::follower1_update()
         eta_r1               =  max(eta_r1,0.1) ;
         vel_msg_f1.linear.x  =  eta_r1 ; 
         vel_msg_f1.angular.z =  (u2_robot1*cos(robot1_yaw) - u1_robot1*sin(robot1_yaw))/eta_r1 ; 
-        
+        */
 
         // Controller 6 (Lyapunov approach using chained form)
         /*
-        X1e_robot1 = X1_robot1 - X1_robot0_r1 ;
-        X2e_robot1 = X2_robot1 - X2_robot0_r1 ;
-        X3e_robot1 = X3_robot1 - X3_robot0_r1 ;
-        u1_robot1 = u1_robot0_r1 - k1_chained*(X1e_robot1 + k3_chained*X2_robot1*X3e_robot1) ;
-        u2_robot1 = u2_robot0_r1 - k2_chained*X2e_robot1 - k3_chained*u1_robot0_r1*X3e_robot1 ; 
-        vel_msg_f1.linear.x  = max(min(u2_robot1 + u1_robot1*X3_robot1,3.0),-3.0) ;    
-        vel_msg_f1.angular.z = max(min(u1_robot1,3.0),-3.0) ;    
-        */
-    }
-    else 
-    {
+        X1_1e = X1_1 - X0_1 ;
+        X1_2e = X1_2 - X0_2 ;
+        X1_3e = X1_3 - X0_3 ;
+        u1_1 = u0_1 - k1_chained*(X1_1e + X1_2*X1_3e) ;
+        u1_2 = u0_2 - u0_1*X1_3e  - k2_chained*X1_2e ;
+        vel_msg_f1.linear.x = max(min(u1_2 + u1_1*X1_3,1.0),-1.0) ;
+        vel_msg_f1.angular.z = max(min(u1_1,1.0),-1.0) ;
+        */  
+
+        
+        X1_1e = X1_1 - X0_1 ;
+        X1_2e = X1_2 - X0_2 ;
+        X1_3e = X1_3 - X0_3 ;
+        u1_1 = u0_1 - k1_chained*(X1_1e + X1_2*X1_3e) ;
+        u1_2 = -k2_chained*X1_2e + u0_2 - X1_3e*u0_1 ;
+        vel_msg_f1.linear.x  = max(min(u1_2 + u1_1*X1_3,1.0),-1.0) ;
+        vel_msg_f1.angular.z = max(min(u1_1,1.0),-1.0) ;
+                                                                                              
+    //}
+    //else 
+    //{
         // Controller 4 (Posture stabilization)
         //vel_msg_f1 = k1_p*rho_r1*cos(gamma_r1) ;
         //vel_msg_f1 = k2_p*gamma_r1 + k1_p*sin(gamma_r1)*cos(gamma_r1)*(gamma_r1 + k3_p*tilda_r1)/gamma_r1 ; 
 
-        vel_msg_f1.linear.x  = 0 ; 
-        vel_msg_f1.angular.z = 0 ; 
-    }
-    
-
+        //vel_msg_f1.linear.x  = 0 ; 
+        //vel_msg_f1.angular.z = 0 ; 
+    //}
     cmd_vel_pub_follower1.publish(vel_msg_f1) ;
 }
 
 void formation_control::follower2_update()
 {
     FORMATION_ANG_robot2 = -(M_PI + SWARM_ANG - robot0_yaw) ;
-    
-    /*
+
     if (FORMATION_ANG_robot2 >= 2*M_PI)
         FORMATION_ANG_robot2 = FORMATION_ANG_robot2 - 2*M_PI ;
     if (FORMATION_ANG_robot2 <= 2*M_PI)
         FORMATION_ANG_robot2 = FORMATION_ANG_robot2 + 2*M_PI ;
-    */
 
     goal_x_robot2 = robot0_x + SWARM_DIST*cos(FORMATION_ANG_robot2) ;
     goal_y_robot2 = robot0_y + SWARM_DIST*sin(FORMATION_ANG_robot2) ;
@@ -636,26 +504,15 @@ void formation_control::follower2_update()
            
     e1_robot2                =  cos(robot2_yaw)*(goal_x_robot2-robot2_x) + sin(robot2_yaw)*(goal_y_robot2-robot2_y) ; 
     e2_robot2                = -sin(robot2_yaw)*(goal_x_robot2-robot2_x) + cos(robot2_yaw)*(goal_y_robot2-robot2_y) ; 
-    e3_robot2                =  robot0_yaw - robot2_yaw  ;
+    e3_robot2                =  robot0_yaw  - robot2_yaw  ;
 
     // Controller 4 (posture stabilization)
-    /*
     rho_r2   = sqrt(pow(robot0_x - robot2_x,2) + pow(robot0_y-robot2_y,2)) ;
     gamma_r2 = M_PI + atan2((robot0_y - robot2_y),(robot0_x - robot2_x)) - robot0_yaw ;
     tilda_r2 = atan2((robot0_y - robot2_y),(robot0_x - robot2_x)) ; //gamma_r2 + robot0_yaw ;
-    */
 
-    // Chained form (Leader)
-    
-    X1_robot0_r2 = robot0_yaw ;
-    X2_robot0_r2 = goal_x_robot2*cos(robot0_yaw) + goal_y_robot2*sin(robot0_yaw) ;
-    X3_robot0_r2 = goal_x_robot2*sin(robot0_yaw) - goal_y_robot2*cos(robot0_yaw) ;
-    u1_robot0_r2 = robot0_wx ;
-    u2_robot0_r2 = robot0_vx - X3_robot0_r2*u1_robot0_r2 ;
-    
-
-    if (abs(robot0_vx) > 0.01) 
-    {
+    //if (abs(robot0_vx) > 0.01) 
+    //{
         ROS_INFO_STREAM("Controller TYPE ONE");
 
         // Controller 1 (Linearized controller)
@@ -680,10 +537,10 @@ void formation_control::follower2_update()
         u2_robot2            =  robot0_ydotdot + kp2*(goal_y_robot2 - robot2_y) + kd2*(robot0_ydot - robot2_ydot);
         eta_r2_dot           =  u1_robot2*cos(robot2_yaw)  + u2_robot2*sin(robot2_yaw) ;
         eta_r2               =  eta_r2 + eta_r2_dot*0.05 ;
-        eta_r2               =  min(eta_r2, 5) ;
+        eta_r2               =  max(eta_r2, 0.1) ;
         vel_msg_f2.linear.x  =  eta_r2 ;
         vel_msg_f2.angular.z =  (u2_robot2*cos(robot2_yaw) - u1_robot2*sin(robot2_yaw))/eta_r2  ;  
-        */
+        */  
 
         // Controller 5 (Simultaneous tracking and stabilization)
         /*
@@ -700,29 +557,28 @@ void formation_control::follower2_update()
         */
 
         // Controller 6 (Lyapunov approach using chained form)
-        /*
-        X1e_robot2 = X1_robot2 - X1_robot0_r2 ;
-        X2e_robot2 = X2_robot2 - X2_robot0_r2 ;
-        X3e_robot2 = X3_robot2 - X3_robot0_r2 ;
-        u1_robot2 = u1_robot0_r2 - k1_chained*(X1e_robot2 + k3_chained*X2_robot2*X3e_robot2)  ;
-        u2_robot2 = u2_robot0_r2 - k2_chained*X2e_robot2 - k3_chained*u1_robot0_r2*X3e_robot2 ;
-        vel_msg_f2.linear.x = max(min(u2_robot2 + u1_robot2*X3_robot2,3.0),-3.0)   ;
-        vel_msg_f2.angular.z = max(min(u1_robot2,3.0),-3.0) ;
-        */
-    }
+        X2_1e = X2_1 - X0_1 ;
+        X2_2e = X2_2 - X0_2 ;
+        X2_3e = X2_3 - X0_3 ;
+        u2_1 = u0_1 - k1_chained*(X2_1e + X2_2*X2_3e) ;
+        u2_2 = -k2_chained*X2_2e + u0_2 - X2_3e*u0_1 ;
+        vel_msg_f2.linear.x = max(min(u2_2 + u2_1*X2_3,1.0),-1.0) ;
+        vel_msg_f2.angular.z = max(min(u2_1,1.0),-1.0) ;
+    //}
+    /*    
     else 
     {
         // Controller 4 (Posture stabilization)
         //vel_msg_f2.linear.x  = k1_p*rho_r2*cos(gamma_r2) ;
         //vel_msg_f2.angular.z = k2_p*gamma_r2 + k1_p*sin(gamma_r2)*cos(gamma_r2)*(gamma_r2 + k3_p*tilda_r2)/gamma_r2 ;
 
-        vel_msg_f2.linear.x  = 0 ; 
-        vel_msg_f2.angular.z =  0 ; 
+        //vel_msg_f2.linear.x  = 0 ; 
+        //vel_msg_f2.angular.z =  0 ; 
     }
-    
-    
+    */
     cmd_vel_pub_follower2.publish(vel_msg_f2) ;
 }
+
 
 void formation_control::update()
 {
@@ -731,49 +587,33 @@ void formation_control::update()
     if ( now > t_next) 
     {
         elapsed = now.toSec() - then.toSec(); 
-        time = time + 0.05 ;
-        //ROS_INFO_STREAM("elapsed =" << elapsed);
-        //ROS_INFO_STREAM("now =" << now.toSec());
-        //ROS_INFO_STREAM("then =" << then.toSec());
+        time = time + elapsed ;
+        ROS_INFO_STREAM("elapsed =" << elapsed);
+        ROS_INFO_STREAM("now =" << now.toSec());
+        ROS_INFO_STREAM("then =" << then.toSec());
 
-        
-        
-        // Lissajous curve
-        double a = 0.75 ;
-        double b = 1 ;
-        double xrdot = -a*sqrt(b)*cos(sqrt(b)*time) ;
-        double yrdot = 0.5*a*sqrt(b)*cos(0.25*sqrt(b)*time) ;
-        double xrddot = a*b*sin(sqrt(b)*time) ;
-        double yrddot = -0.25*a*b*sin(0.25*sqrt(b)*time) ;
-        double vr = sqrt(pow(xrdot,2) + pow(yrdot,2)) ;
-        double wr = (xrddot*yrdot - yrddot*xrdot)/vr ;
-        
-        /*
-        geometry_msgs::Twist leader_vel_msg ;
-        leader_vel_msg.linear.x   = 0.7 ;  // exp(-0.1*time)        ;
-        leader_vel_msg.angular.z  = -0.1 ; //-exp(-time)            ;
+        geometry_msgs::Twist leader_vel_msg        ;
+        leader_vel_msg.linear.x =  0.4             ;
+        leader_vel_msg.angular.z = 0               ;
         cmd_vel_leader_pub.publish(leader_vel_msg) ;
-        */
 
         robot0_xdotdot = (robot0_xdot - robot0_xdot_prev)/elapsed ;
         robot0_ydotdot = (robot0_ydot - robot0_ydot_prev)/elapsed ;
         robot0_omega   = (robot0_xdot*robot0_ydotdot - robot0_xdotdot*robot0_ydot)/pow(robot0_vx,2) ;
 
         follower1_update() ;
-        follower2_update() ;
+        //follower2_update() ;
 
         robot0_xdot_prev = robot0_xdot ;
         robot0_ydot_prev = robot0_ydot ;
-
-        // u1_robot = u1_robot0_r2 - k1_chained*(X1e_robot2 + k3_chained*X2_robot2*X3e_robot2)
         
-        debug_msg.linear.x =  0        ;
-        debug_msg.linear.y =  0        ;
-        debug_msg.linear.z =  0            ;
-        debug_msg.angular.x = X3_robot0_r2               ;
-        debug_msg.angular.y = X3_robot2                   ;
-        debug_msg.angular.z = X3e_robot2                  ;
-        debug_pub.publish(debug_msg)                   ;
+        debug_msg.linear.x =  X2_1e        ;
+        debug_msg.linear.y =  X2_2e         ;
+        debug_msg.linear.z =  X2_3e              ;
+        debug_msg.angular.x = X1_1e              ;
+        debug_msg.angular.y = X1_2e                   ;
+        debug_msg.angular.z = X1_3e                   ;
+        debug_pub.publish(debug_msg)                  ;
        
         /*
         FORMATION_ANG = SWARM_ANG + robot0_yaw ;
@@ -848,100 +688,12 @@ void formation_control::update()
     
 }
 
-void formation_control::update_dynamic()
-{
-    ros::Time now = ros::Time::now();
-
-    //if ( now > t_next) 
-    //{
-
-        double k1,k2,k3 ;
-        k1 = 1;k2 = 6.5;k3 = 6.5;
-        double kp,kd,ki ;
-        kp = 1;kd = 1;ki = 10 ;
-
-        double dt ;
-        dt = 0.05 ; //now.toSec() - then.toSec(); 
-        time = time + 0.05 ;
-        ROS_INFO_STREAM("elapsed =" << dt);
-        //ROS_INFO_STREAM("now =" << now.toSec());
-        //ROS_INFO_STREAM("then =" << then.toSec());
-
-        // Lissajous curve
-        
-        double A,B ;
-        A = 1.5 ;
-        B = 0.5 ;
-        xref = A*sin(B*time) ;
-        yref = 2*A*sin(0.25*B*time) ;
-        xref_dot = A*B*cos(B*time) ;
-        yref_dot = 0.5*A*B*cos(0.25*B*time) ;
-        phiref = atan2(yref_dot,xref_dot) ;
-        xref_ddot = -A*B*B*sin(B*time) ;
-        yref_ddot = -0.5*0.25*A*B*B*sin(0.25*B*time) ;
-        vref = sqrt(pow(xref_dot,2) + pow(yref_dot,2)) ;
-        wref = (xref_ddot*yref_dot - yref_ddot*xref_dot)/pow(vref,2) ;
-        
-
-        // Straight line
-        /*
-        vref = 0.5 ;
-        wref = 0.25 ;
-        //phiref = 0 ;
-        xref = xref + vref*cos(phiref)*dt ;
-        yref = yref + vref*sin(phiref)*dt ;
-        phiref = phiref + wref*dt ;
-        */
-
-
-        x_e   =  cos(phi)*(xref - x) + sin(phi)*(yref - y) ;
-        y_e   = -sin(phi)*(xref - x) + cos(phi)*(yref - y) ;
-        phi_e =  phiref - phi ; 
-
-        vd    = vref*cos(phi_e) + k1*x_e ;
-        wd    = wref + k3*signum(vref)*y_e + k2*phi_e ;
-
-        v_e   = vd - v ;
-        v_e_sum += v_e*dt ;
-        w_e   = wd - w ; 
-        w_e_sum += w_e*dt ;
-
-        F   = kp*v_e + ki*v_e_sum  ;
-        Tau = kp*w_e + ki*w_e_sum  ;
-
-        debug_msg.linear.x =  F        ;
-        debug_msg.linear.y =  Tau      ;
-        debug_msg.linear.z =  0        ;
-        debug_msg.angular.x = x_e               ;
-        debug_msg.angular.y = y_e                ;
-        debug_msg.angular.z = phi_e               ;
-        debug_pub.publish(debug_msg)                   ;
-        
-        v   =  v + (F/mass)*dt ;//v_p + (F/mass)*dt       ;
-        w   =  w + (Tau/inertia)*dt ; //w_p + (Tau/inertia)*dt  ;
-        x   =  x + v*cos(phi)*dt ; //x_p   + v*cos(phi)*dt ;
-        y   =  y + v*sin(phi)*dt ; //y_p   + v*sin(phi)*dt ;
-        phi =  phi + w*dt ; //phi_p + w*dt          ;
-        
-        then = now;
-        ros::spinOnce();
-    /*    
-    }
-     else 
-    {
-        ROS_INFO_STREAM("LOOP MISSED");
-    } 
-    */
-}
-
 void formation_control::spin()
 {
     ros::Rate loop_rate(rate);
     while (ros::ok())
     {
-       //update();
-       update_dynamic() ;
-       visualization() ;
+       update();
        loop_rate.sleep();
     }
 }  

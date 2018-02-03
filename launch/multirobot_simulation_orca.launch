@@ -141,8 +141,8 @@ Tuning the weights of the local planner takes a lot of art
           <arg name="use_sim_time" value="true"/>
           <arg name="debug" value="false"/>
           <arg name="world_name" value="$(find multirobot_fame)/worlds/kaustav1.world"/> 
-          <!-- <arg name="world_name" value="$(find multirobot_fame)/worlds/formation.world"/> --> 
-     </include>
+          <!-- <arg name="world_name" value="$(find multirobot_fame)/worlds/formation.world"/> -->
+     </include> 
  
      <include file="$(find multirobot_orca)/launch/robots_orca.launch" /> 
 

@@ -32,7 +32,8 @@
      <param name="local_costmap/obstacle_layer/laser_scan_sensor/topic" value="$(arg robot)/base_scan"/> 
 
      <param name="base_global_planner" type="string" value="navfn/NavfnROS" />
-     <param name="base_local_planner" value="collvoid_local_planner/CollvoidLocalPlanner" /> 
+     <!-- <param name="base_local_planner" value="collvoid_local_planner/CollvoidLocalPlanner" /> -->
+     <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/> 
   </node> 
 
   <rosparam command="load" file="$(find collvoid_stage)/params/me_publisher_turtle.yaml"/> 
