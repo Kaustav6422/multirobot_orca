@@ -60,7 +60,8 @@ private:
     void joystick_callback(const sensor_msgs::Joy::ConstPtr& joy) ;
     void init_variables()  ;
     void update()          ;
-    void update_dynamic() ;
+    void update_dynamic_noslip() ;
+    void update_dynamic_slip() ;
     void follower1_update() ;
     void follower2_update() ; 
     
@@ -199,6 +200,7 @@ private:
 
     double f ;
 
+    // Dynamic model with no slip
     double mass ;
     double inertia ;
     double F ;
@@ -215,6 +217,18 @@ private:
     double xref_ddot,yref_ddot,phiref_ddot ;
     double vd, wd ;
     double v_e, w_e, v_e_p, w_e_p, v_e_sum,w_e_sum ;
+
+    // Dynamic model with slip
+    double b ; // meters
+    double d ; // meters
+    double r ; // meters
+    double mr ; // kg
+    double mw ; // kg
+    double Irz ; // kg-m2
+    double Iwy ; // kg-m2
+    double Iwz ; // kg-m2
+    double alpha ; // traction parameter
+    double beta ; // traction parameter
 };
 
 formation_control::formation_control()
@@ -848,7 +862,7 @@ void formation_control::update()
     
 }
 
-void formation_control::update_dynamic()
+void formation_control::update_dynamic_noslip()
 {
     ros::Time now = ros::Time::now();
 
@@ -940,7 +954,7 @@ void formation_control::spin()
     while (ros::ok())
     {
        //update();
-       update_dynamic() ;
+       update_dynamic_noslip() ;
        visualization() ;
        loop_rate.sleep();
     }

@@ -172,7 +172,8 @@ add_executable(costmap_node src/costmap_node.cpp)
 add_executable(formation_control_new1 src/formation_control_new1.cpp)
 add_executable(formation_control_new2 src/formation_control_new2.cpp)
 add_executable(formation_control_dynfeedbacklin src/formation_control_dynfeedbacklin.cpp)
-add_executable(tracking_dynamic src/tracking_dynamic.cpp)
+add_executable(robot_model src/robot_model.cpp)
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -184,10 +185,18 @@ add_executable(tracking_dynamic src/tracking_dynamic.cpp)
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+
+
+########## Don't know if it's needed #####################33
+
 find_package( PCL REQUIRED )
 include_directories(  ${catkin_INCLUDE_DIRS}  ${PCL_INCLUDE_DIRS} )
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
+
+############################################################
+
+
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -204,7 +213,8 @@ target_link_libraries(costmap_node ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 target_link_libraries(formation_control_new1 ${catkin_LIBRARIES})
 target_link_libraries(formation_control_new2 ${catkin_LIBRARIES})
 target_link_libraries(formation_control_dynfeedbacklin ${catkin_LIBRARIES}) 
-target_link_libraries(tracking_dynamic ${catkin_LIBRARIES})
+target_link_libraries(robot_model ${catkin_LIBRARIES})
+
 
 
  
