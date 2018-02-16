@@ -173,6 +173,7 @@ add_executable(formation_control_new1 src/formation_control_new1.cpp)
 add_executable(formation_control_new2 src/formation_control_new2.cpp)
 add_executable(formation_control_dynfeedbacklin src/formation_control_dynfeedbacklin.cpp)
 add_executable(robot_model src/robot_model.cpp)
+add_executable(robot_model_2 src/robot_model_2.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -214,6 +215,7 @@ target_link_libraries(formation_control_new1 ${catkin_LIBRARIES})
 target_link_libraries(formation_control_new2 ${catkin_LIBRARIES})
 target_link_libraries(formation_control_dynfeedbacklin ${catkin_LIBRARIES}) 
 target_link_libraries(robot_model ${catkin_LIBRARIES})
+target_link_libraries(robot_model_2 ${catkin_LIBRARIES}) 
 
 
 

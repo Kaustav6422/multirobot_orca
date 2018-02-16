@@ -176,6 +176,7 @@ Tuning the weights of the local planner takes a lot of art
      </node> -->
 
      <node pkg ="multirobot_orca" name = "formation_control_dynfeedbacklin"  type = "formation_control_dynfeedbacklin"  output = "screen" args="" /> 
+     <!-- <node pkg ="multirobot_orca" name = "robot_model"  type = "robot_model"  output = "screen" args="" />  -->
      <!-- <node pkg ="multirobot_orca" name = "formation_control_new1"  type = "formation_control_new1"  output = "screen" args="" /> -->
      <!-- <node pkg ="multirobot_orca" name = "cvx"  type = "cvx.py"  output = "screen" args="" /> -->
               

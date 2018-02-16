@@ -931,8 +931,11 @@ void formation_control::update_dynamic_noslip()
         debug_msg.angular.z = phi_e               ;
         debug_pub.publish(debug_msg)                   ;
         
+        // Dynamic  model
         v   =  v + (F/mass)*dt ;//v_p + (F/mass)*dt       ;
         w   =  w + (Tau/inertia)*dt ; //w_p + (Tau/inertia)*dt  ;
+
+        // Kinematic models
         x   =  x + v*cos(phi)*dt ; //x_p   + v*cos(phi)*dt ;
         y   =  y + v*sin(phi)*dt ; //y_p   + v*sin(phi)*dt ;
         phi =  phi + w*dt ; //phi_p + w*dt          ;
